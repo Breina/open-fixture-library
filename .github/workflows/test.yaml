@@ -35,6 +35,8 @@ jobs:
             run: npm run lint:stylelint -- --formatter compact
           - name: Run dmx-value-scaling test
             run: npm run test:dmx-value-scaling
+          - name: Run gdtf-round-trip test
+            run: npm run test:gdtf-round-trip
           - name: Run fixtures-valid test
             run: npm run test:fixtures-valid
           - name: Run http-status test
