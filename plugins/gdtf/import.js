@@ -2,11 +2,13 @@ import JSZip from 'jszip';
 import xml2js from 'xml2js';
 import importJson from '../../lib/import-json.js';
 import CoarseChannel from '../../lib/model/CoarseChannel.js';
+import Matrix from '../../lib/model/Matrix.js';
+import TemplateChannel from '../../lib/model/TemplateChannel.js';
 import { scaleDmxRangeIndividually, scaleDmxValue } from '../../lib/scale-dmx-values.js';
 import gdtfAttributes, { gdtfUnits } from './gdtf-attributes.js';
 import { followXmlNodeReference, getRgbColorFromGdtfColor } from './gdtf-helpers.js';
 
-export const version = '0.2.2';
+export const version = '0.3.0';
 
 /**
  * @typedef {object} Relation
@@ -79,6 +81,9 @@ export async function importFixtures(buffer, filename, authorName) {
   warnings.push('Please add physical data to the fixture.');
 
   fixture.matrix = {};
+
+  /** @type {Map<string, string>} OFL template channel keys (including `$pixelKey`) by the keys of GDTF channels with DMXBreak="Overwrite". */
+  const templateKeysByChannelKey = new Map();
 
   addWheels();
 
@@ -156,7 +161,8 @@ export async function importFixtures(buffer, filename, authorName) {
       softwareVersion: softwareVersion.name,
     };
 
-    for (const personality of softwareVersion.personalities) {
+    const personalities = softwareVersion.personalities ?? [];
+    for (const personality of personalities) {
       const index = Number.parseInt(personality.$.Value.replace('0x', ''), 16);
       const mode = followXmlNodeReference(gdtfFixture.DMXModes[0].DMXMode, personality.$.DMXMode);
       mode._oflRdmPersonalityIndex = index;
@@ -197,8 +203,9 @@ export async function importFixtures(buffer, filename, authorName) {
       return;
     }
 
+    const virtualWheelNames = getVirtualColorMacroWheelNames();
     const gdtfWheels = (gdtfFixture.Wheels[0].Wheel || []).filter(
-      (wheel) => wheel.$.Name !== 'ColorMacro',
+      (wheel) => wheel.$.Name !== 'ColorMacro' && !virtualWheelNames.has(wheel.$.Name),
     );
 
     if (gdtfWheels.length === 0) {
@@ -206,6 +213,8 @@ export async function importFixtures(buffer, filename, authorName) {
     }
 
     fixture.wheels = {};
+
+    const wheelSlotTypes = getWheelSlotTypesFromUsage();
 
     for (const gdtfWheel of gdtfWheels) {
       fixture.wheels[gdtfWheel.$.Name] = {
@@ -232,18 +241,74 @@ export async function importFixtures(buffer, filename, authorName) {
             slot.name = name;
             slot.facets = gdtfSlot.Facet.length;
           }
-          else if (name.startsWith('Gobo') || gdtfWheel.$.Name.startsWith('Gobo')) {
+          else if ('MediaFileName' in gdtfSlot.$ || name.startsWith('Gobo') || gdtfWheel.$.Name.startsWith('Gobo')) {
             slot.type = 'Gobo';
             slot.name = name;
           }
           else {
-            slot.name = name;
+            slot.type = wheelSlotTypes.get(gdtfWheel.$.Name) ?? 'Unknown';
+
+            // Iris and Frost slots don't have names in OFL
+            if (slot.type !== 'Iris' && slot.type !== 'Frost') {
+              slot.name = name;
+            }
           }
 
           return slot;
         }),
       };
     }
+  }
+
+  /**
+   * The attributes of the channel functions that use a wheel tell what kind of slots it has.
+   * @returns {Map<string, string>} OFL wheel slot types by GDTF wheel name.
+   */
+  function getWheelSlotTypesFromUsage() {
+    const slotTypesByAttribute = [
+      [/^Color\d+/, 'Color'],
+      [/^(?:Gobo|AnimationWheel)\d+/, 'Gobo'],
+      [/^Prism\d+/, 'Prism'],
+      [/^Frost\d+/, 'Frost'],
+      [/^Iris/, 'Iris'],
+    ];
+
+    const wheelSlotTypes = new Map();
+    for (const { $ } of getAllGdtfChannelFunctions()) {
+      const slotType = slotTypesByAttribute.find(([regex]) => regex.test($.Attribute))?.[1];
+      if (slotType && $.Wheel && !wheelSlotTypes.has($.Wheel)) {
+        wheelSlotTypes.set($.Wheel, slotType);
+      }
+    }
+
+    return wheelSlotTypes;
+  }
+
+  /**
+   * Color macros can reference a virtual color wheel to describe their colors.
+   * Such wheels are only used by ColorMacro(n) channel functions.
+   * @returns {Set<string>} Names of wheels that are only referenced by color macro channel functions.
+   */
+  function getVirtualColorMacroWheelNames() {
+    const wheelUsages = getAllGdtfChannelFunctions().filter(({ $ }) => $.Wheel);
+    const isColorMacro = ({ $ }) => /^ColorMacro\d+$/.test($.Attribute);
+
+    const colorMacroWheelNames = new Set(wheelUsages.filter((usage) => isColorMacro(usage)).map(({ $ }) => $.Wheel));
+    const otherWheelNames = new Set(wheelUsages.filter((usage) => !isColorMacro(usage)).map(({ $ }) => $.Wheel));
+    return colorMacroWheelNames.difference(otherWheelNames);
+  }
+
+  /**
+   * @returns {object[]} All <ChannelFunction> XML objects of all modes.
+   */
+  function getAllGdtfChannelFunctions() {
+    return gdtfFixture.DMXModes[0].DMXMode.flatMap(
+      (gdtfMode) => gdtfMode.DMXChannels[0].DMXChannel.flatMap(
+        (gdtfChannel) => gdtfChannel.LogicalChannel.flatMap(
+          (gdtfLogicalChannel) => gdtfLogicalChannel.ChannelFunction ?? [],
+        ),
+      ),
+    );
   }
 
   /**
@@ -280,11 +345,12 @@ export async function importFixtures(buffer, filename, authorName) {
    * @returns {Relation[]} An array of relations.
    */
   function splitSwitchingChannels() {
-    let relations = getModeMasterRelations();
-
-    if (relations.length === 0) {
-      relations = getLegacyRelations();
+    const modeMasterRelations = splitModeMasterChannels();
+    if (modeMasterRelations.length > 0) {
+      return modeMasterRelations;
     }
+
+    const relations = getLegacyRelations();
 
     for (const relation of relations) {
       const followerChannel = relation.followerGdtfChannel;
@@ -315,38 +381,122 @@ export async function importFixtures(buffer, filename, authorName) {
     return relations;
 
     /**
-     * Parses <ChannelFunction ModeMaster="…">'s relation data.
-     * This way of specifying relations was added in GDTF v0.88.
+     * Parses <ChannelFunction ModeMaster="…">'s relation data (added in GDTF v0.88)
+     * and splits each DMX channel with such channel functions into one channel per
+     * switch target: All channel functions that are active for the same ModeMaster
+     * condition form one switch target. Conditions with identical channel functions
+     * share a switch target. Channel functions without ModeMaster are always active,
+     * so they are part of every switch target.
      * @returns {Relation[]} An array of relations, may be empty.
      */
-    function getModeMasterRelations() {
-      return gdtfFixture.DMXModes[0].DMXMode.flatMap((gdtfMode, modeIndex) => {
-        return gdtfMode.DMXChannels[0].DMXChannel.flatMap((gdtfDmxChannel) => {
-          return gdtfDmxChannel.LogicalChannel.flatMap((gdtfLogicalChannel) => {
-            return gdtfLogicalChannel.ChannelFunction.flatMap((gdtfChannelFunction) => {
-              if (!('ModeMaster' in gdtfChannelFunction.$)) {
-                return [];
-              }
+    function splitModeMasterChannels() {
+      const switchTargetRelations = [];
+      const hasModeMasterFunction = (gdtfChannel) => gdtfChannel.LogicalChannel[0].ChannelFunction.some(({ $ }) => 'ModeMaster' in $);
 
-              const masterChannel = followXmlNodeReference(gdtfMode.DMXChannels[0], gdtfChannelFunction.$.ModeMaster.split('.', 1)[0]);
+      const gdtfModes = gdtfFixture.DMXModes[0].DMXMode;
+      for (const [modeIndex, gdtfMode] of gdtfModes.entries()) {
+        const gdtfChannels = gdtfMode.DMXChannels[0].DMXChannel;
+        const channelsWithModeMaster = gdtfChannels.filter((gdtfChannel) => hasModeMasterFunction(gdtfChannel));
 
-              const dmxFrom = getDmxValueWithResolutionFromGdtfDmxValue(gdtfChannelFunction.$.ModeFrom, 0);
-              const maxDmxValue = Math.pow(256, dmxFrom[1]) - 1;
-              const dmxTo = getDmxValueWithResolutionFromGdtfDmxValue(gdtfChannelFunction.$.ModeTo, maxDmxValue, dmxFrom[1]);
+        for (const gdtfChannel of channelsWithModeMaster) {
+          const switchTargets = getSwitchTargets(gdtfChannel.LogicalChannel[0].ChannelFunction);
+          const followerChannels = splitChannel(gdtfChannels, gdtfChannel, switchTargets);
 
-              return {
-                modeIndex,
-                masterGdtfChannel: masterChannel,
-                switchingChannelName: gdtfDmxChannel.$.Name,
-                followerGdtfChannel: gdtfDmxChannel,
-                followerChannelFunction: gdtfChannelFunction,
-                dmxFrom,
-                dmxTo,
-              };
-            });
-          });
-        });
+          for (const [targetIndex, { conditions }] of switchTargets.entries()) {
+            for (const condition of conditions) {
+              switchTargetRelations.push(createModeMasterRelation(modeIndex, gdtfChannel, followerChannels[targetIndex], condition));
+            }
+          }
+        }
+      }
+
+      return switchTargetRelations;
+    }
+
+    /**
+     * @param {number} modeIndex - The index of the mode.
+     * @param {object} gdtfChannel - The original <DMXChannel> XML object, whose name is used for the switching channel.
+     * @param {object} followerChannel - The <DMXChannel> XML object of the switch target.
+     * @param {string[]} condition - ModeMaster, ModeFrom and ModeTo of the switch target's channel functions.
+     * @returns {Relation} The relation.
+     */
+    function createModeMasterRelation(modeIndex, gdtfChannel, followerChannel, [modeMaster, modeFrom, modeTo]) {
+      const gdtfMode = gdtfFixture.DMXModes[0].DMXMode[modeIndex];
+      const dmxFrom = getDmxValueWithResolutionFromGdtfDmxValue(modeFrom, 0);
+      const maxDmxValue = Math.pow(256, dmxFrom[1]) - 1;
+      const dmxTo = getDmxValueWithResolutionFromGdtfDmxValue(modeTo, maxDmxValue, dmxFrom[1]);
+
+      return {
+        modeIndex,
+        masterGdtfChannel: followXmlNodeReference(gdtfMode.DMXChannels[0], modeMaster.split('.', 1)[0]),
+        switchingChannelName: gdtfChannel.$.Name,
+        followerGdtfChannel: followerChannel,
+        dmxFrom,
+        dmxTo,
+      };
+    }
+
+    /**
+     * @param {object[]} gdtfChannelFunctions - The <ChannelFunction> XML objects of a DMX channel.
+     * @returns {{ functions: object[], conditions: string[][] }[]} The switch targets, each with its channel functions and the ModeMaster conditions (master, from, to) that activate it.
+     */
+    function getSwitchTargets(gdtfChannelFunctions) {
+      const alwaysActiveFunctions = gdtfChannelFunctions.filter(({ $ }) => !('ModeMaster' in $));
+      const functionsPerCondition = Map.groupBy(
+        gdtfChannelFunctions.filter(({ $ }) => 'ModeMaster' in $),
+        ({ $ }) => JSON.stringify([$.ModeMaster, $.ModeFrom, $.ModeTo]),
+      );
+
+      // switch targets by the content of their channel functions
+      const switchTargets = new Map();
+      for (const [condition, conditionFunctions] of functionsPerCondition) {
+        const targetFunctions = [...conditionFunctions, ...alwaysActiveFunctions];
+        const contentKey = getChannelFunctionsContentKey(targetFunctions);
+
+        if (!switchTargets.has(contentKey)) {
+          switchTargets.set(contentKey, { functions: targetFunctions, conditions: [] });
+        }
+        switchTargets.get(contentKey).conditions.push(JSON.parse(condition));
+      }
+
+      return switchTargets.values().toArray();
+    }
+
+    /**
+     * @param {object[]} gdtfChannelFunctions - <ChannelFunction> XML objects.
+     * @returns {string} A key that is equal for channel functions with the same content, ignoring their names (often auto-numbered) and ModeMaster conditions.
+     */
+    function getChannelFunctionsContentKey(gdtfChannelFunctions) {
+      const ignoredAttributes = new Set(['Name', 'ModeMaster', 'ModeFrom', 'ModeTo']);
+      return JSON.stringify(gdtfChannelFunctions.map(({ $, ...children }) => ({
+        attributes: Object.entries($).filter(([attribute]) => !ignoredAttributes.has(attribute)),
+        children,
+      })));
+    }
+
+    /**
+     * Replaces a DMX channel by one copy per switch target, each containing only that target's channel functions.
+     * @param {object[]} gdtfChannels - All <DMXChannel> XML objects of the mode; copies are inserted after the original.
+     * @param {object} gdtfChannel - The <DMXChannel> XML object to split.
+     * @param {{ functions: object[] }[]} switchTargets - The switch targets.
+     * @returns {object[]} The <DMXChannel> XML objects of the switch targets (the first one is the original channel).
+     */
+    function splitChannel(gdtfChannels, gdtfChannel, switchTargets) {
+      const channelIndex = gdtfChannels.indexOf(gdtfChannel);
+      const followerChannels = switchTargets.map(({ functions }, targetIndex) => {
+        if (targetIndex === 0) {
+          gdtfChannel.LogicalChannel[0].ChannelFunction = functions;
+          return gdtfChannel;
+        }
+
+        const channelCopy = structuredClone(gdtfChannel);
+        channelCopy.$.Name += `_OflSplit${targetIndex}`;
+        channelCopy.LogicalChannel[0].ChannelFunction = structuredClone(functions);
+        return channelCopy;
       });
+
+      gdtfChannels.splice(channelIndex + 1, 0, ...followerChannels.slice(1));
+      return followerChannels;
     }
 
     /**
@@ -416,9 +566,18 @@ export async function importFixtures(buffer, filename, authorName) {
       }
     }
 
-    // append $pixelKey to templateChannels' keys and names
+    // append $pixelKey to templateChannels' keys and names, making sure that
+    // resolved matrix channel keys can't be confused with available channel keys
+    const availableChannelKeys = availableChannels.map((channelWrapper) => channelWrapper.key);
     for (const channelWrapper of templateChannels) {
-      channelWrapper.key += ' $pixelKey';
+      const baseKey = channelWrapper.key;
+      const templateBaseKey = getUniqueTemplateBaseKey(baseKey, availableChannelKeys);
+
+      channelWrapper.key = `${templateBaseKey} $pixelKey`;
+      templateKeysByChannelKey.set(baseKey, channelWrapper.key);
+      if (channelWrapper.channel.name === baseKey) {
+        channelWrapper.channel.name = templateBaseKey;
+      }
       channelWrapper.channel.name += ' $pixelKey';
     }
 
@@ -440,6 +599,25 @@ export async function importFixtures(buffer, filename, authorName) {
   }
 
   /**
+   * @param {string} baseKey - The desired base key of a template channel (without `$pixelKey`).
+   * @param {string[]} availableChannelKeys - Keys of all available channels.
+   * @returns {string} A base key whose resolved matrix channel keys (`<baseKey> <pixelKey>`) can't be confused with an available channel key.
+   */
+  function getUniqueTemplateBaseKey(baseKey, availableChannelKeys) {
+    const isConfusable = (templateBaseKey) => availableChannelKeys.some(
+      (key) => key === templateBaseKey || key.startsWith(`${templateBaseKey} `),
+    );
+
+    let templateBaseKey = baseKey;
+    let index = 1;
+    while (isConfusable(templateBaseKey)) {
+      templateBaseKey = index === 1 ? `${baseKey} Pixel` : `${baseKey} Pixel ${index}`;
+      index++;
+    }
+    return templateBaseKey;
+  }
+
+  /**
    * @param {ChannelWrapper[]} channelWrappers - The OFL availableChannels or templateChannels object.
    * @param {object} gdtfChannel - The GDTF <DMXChannel> XML object.
    */
@@ -458,12 +636,8 @@ export async function importFixtures(buffer, filename, authorName) {
       name,
       fineChannelAliases: [],
       dmxValueResolution: '',
-      defaultValue: null,
+      defaultValue: getChannelDefaultValue(),
     };
-
-    if ('Default' in gdtfChannel.$) {
-      channel.defaultValue = getDmxValueWithResolutionFromGdtfDmxValue(gdtfChannel.$.Default);
-    }
 
     if ('Highlight' in gdtfChannel.$ && gdtfChannel.$.Highlight !== 'None') {
       channel.highlightValue = getDmxValueWithResolutionFromGdtfDmxValue(gdtfChannel.$.Highlight);
@@ -504,6 +678,32 @@ export async function importFixtures(buffer, filename, authorName) {
     });
 
     /**
+     * Since GDTF v1.1, default values are defined per channel function and the
+     * DMX channel's default value is the one of its initial channel function.
+     * @returns {[number, Resolution] | null} The channel's default value, or null if it's zero or not defined.
+     */
+    function getChannelDefaultValue() {
+      if ('Default' in gdtfChannel.$) {
+        return getDmxValueWithResolutionFromGdtfDmxValue(gdtfChannel.$.Default);
+      }
+
+      const gdtfChannelFunctions = gdtfChannel.LogicalChannel.flatMap(
+        (gdtfLogicalChannel) => gdtfLogicalChannel.ChannelFunction ?? [],
+      );
+      const initialFunctionName = gdtfChannel.$.InitialFunction?.split('.').at(-1);
+      const initialFunction = gdtfChannelFunctions.find(
+        (gdtfChannelFunction) => gdtfChannelFunction.$.Name === initialFunctionName,
+      ) ?? gdtfChannelFunctions[0];
+
+      if (!initialFunction || !('Default' in initialFunction.$)) {
+        return null;
+      }
+
+      const defaultValue = getDmxValueWithResolutionFromGdtfDmxValue(initialFunction.$.Default);
+      return defaultValue[0] === 0 ? null : defaultValue;
+    }
+
+    /**
      * @returns {string} The channel name.
      */
     function getChannelName() {
@@ -523,9 +723,6 @@ export async function importFixtures(buffer, filename, authorName) {
      * @returns {object[]} Array of OFL capability objects (but with GDTF DMX values).
      */
     function getCapabilities() {
-      let minPhysicalValue = Infinity;
-      let maxPhysicalValue = -Infinity;
-
       // save all <ChannelSet> XML nodes in a flat list
       const gdtfCapabilities = gdtfChannel.LogicalChannel.flatMap((gdtfLogicalChannel) => {
         if (!gdtfLogicalChannel.ChannelFunction) {
@@ -548,6 +745,10 @@ export async function importFixtures(buffer, filename, authorName) {
             gdtfFixture.AttributeDefinitions[0].Attributes[0],
             gdtfChannelFunction.$.Attribute,
           ) || { $: { Name: 'NoFeature' } };
+
+          // the physical range of each channel function is used to guess the unit of unitless attributes
+          gdtfChannelFunction._minPhysicalValue = Infinity;
+          gdtfChannelFunction._maxPhysicalValue = -Infinity;
 
           return gdtfChannelFunction.ChannelSet.map((gdtfChannelSet) => {
             // save parent nodes for future use
@@ -576,9 +777,12 @@ export async function importFixtures(buffer, filename, authorName) {
 
             gdtfChannelSet._physicalFrom = channelSetPhysicalFrom;
             gdtfChannelSet._physicalTo = channelSetPhysicalTo;
+            gdtfChannelSet._hasExplicitPhysicalValues = [gdtfChannelSet.$, gdtfChannelFunction.$].some(
+              (attributes) => 'PhysicalFrom' in attributes || 'PhysicalTo' in attributes,
+            );
 
-            minPhysicalValue = Math.min(minPhysicalValue, channelSetPhysicalFrom, channelSetPhysicalTo);
-            maxPhysicalValue = Math.max(maxPhysicalValue, channelSetPhysicalFrom, channelSetPhysicalTo);
+            gdtfChannelFunction._minPhysicalValue = Math.min(gdtfChannelFunction._minPhysicalValue, channelSetPhysicalFrom, channelSetPhysicalTo);
+            gdtfChannelFunction._maxPhysicalValue = Math.max(gdtfChannelFunction._maxPhysicalValue, channelSetPhysicalFrom, channelSetPhysicalTo);
 
             return gdtfChannelSet;
           });
@@ -608,11 +812,14 @@ export async function importFixtures(buffer, filename, authorName) {
 
         const oflProperty = getOflProperty(capabilityTypeData, gdtfCapability);
 
-        if (oflProperty !== null) {
-          const physicalUnit = getPhysicalUnit(gdtfCapability);
+        const physicalFrom = gdtfCapability._physicalFrom;
+        const physicalTo = gdtfCapability._physicalTo;
 
-          const physicalFrom = gdtfCapability._physicalFrom;
-          const physicalTo = gdtfCapability._physicalTo;
+        // e.g. slot numbers can't be determined without a WheelSlotIndex
+        const hasPhysicalValues = !Number.isNaN(physicalFrom) && !Number.isNaN(physicalTo);
+
+        if (oflProperty !== null && hasPhysicalValues) {
+          const physicalUnit = getPhysicalUnit(gdtfCapability);
 
           if (physicalFrom === physicalTo) {
             capability[oflProperty] = physicalUnit(physicalFrom, null);
@@ -703,6 +910,7 @@ export async function importFixtures(buffer, filename, authorName) {
           _dmxFrom: firstCapability._dmxFrom,
           _physicalFrom: firstCapability._physicalFrom,
           _physicalTo: firstCapability._physicalTo,
+          _hasExplicitPhysicalValues: firstCapability._hasExplicitPhysicalValues,
         };
       }
 
@@ -789,16 +997,22 @@ export async function importFixtures(buffer, filename, authorName) {
         const gdtfAttribute = gdtfCapability._channelFunction._attribute;
         const capabilityTypeData = getCapabilityTypeData(gdtfAttribute.$.Name);
 
-        if (capabilityTypeData.oflProperty === 'index') {
+        // slot numbers are always unitless
+        if (capabilityTypeData.oflProperty === 'index' || capabilityTypeData.oflProperty === 'slotNumber') {
           return gdtfUnits.None;
         }
 
         let physicalEntity = gdtfAttribute.$.PhysicalUnit;
 
-        if (!physicalEntity) {
+        // "None" is the default value of the PhysicalUnit attribute, so treat it like a missing attribute
+        if (!physicalEntity || physicalEntity.toLowerCase() === 'none') {
           physicalEntity = 'None';
 
-          if (minPhysicalValue === 0 && maxPhysicalValue === 1) {
+          const { _minPhysicalValue: minPhysicalValue, _maxPhysicalValue: maxPhysicalValue } = gdtfCapability._channelFunction;
+
+          // unitless physical values between 0 and 1 are relative, and so is
+          // GDTF's default range 0…1 if no physical values are given
+          if (!gdtfCapability._hasExplicitPhysicalValues || (minPhysicalValue >= 0 && maxPhysicalValue <= 1)) {
             physicalEntity = 'Percent';
           }
           else if (capabilityTypeData.defaultPhysicalEntity) {
@@ -920,107 +1134,200 @@ export async function importFixtures(buffer, filename, authorName) {
   }
 
   /**
-   * @typedef {object} DmxBreakWrapper Holds a list of OFL channel keys belonging to consecutive GDTF channels with the same DMXBreak attribute.
-   * @property {string | undefined} dmxBreak The DMXBreak attribute of consecutive DMXChannel nodes.
-   * @property {string} geometry The Geometry attribute of consecutive DMXChannel nodes.
-   * @property {string[]} channels The OFL channel keys in this DMX break.
+   * @typedef {object} MatrixChannelReference
+   * @property {string} templateKey The OFL template channel key (including `$pixelKey`).
+   * @property {string} pixelKey The OFL pixel key.
    */
 
   /**
    * Add modes and matrix pixel keys (if needed) to the fixture.
+   *
+   * DMX channels with `DMXBreak="Overwrite"` belong to a geometry that is
+   * instantiated by <GeometryReference> nodes in the mode's geometry tree.
+   * Each instance is a matrix pixel whose channels are at the DMX address
+   * `<Break DMXOffset>` + `Offset` - 1.
    */
   function addModes() {
-    // save all matrix pixels that are used in some mode
-    const matrixPixels = new Set();
+    /** @type {Map<string, number[]>} All matrix pixels that are used in some mode, with their position. */
+    const matrixPixels = new Map();
+
+    const topLevelGeometryNames = getTopLevelGeometryNames();
 
     fixture.modes = gdtfFixture.DMXModes[0].DMXMode.map((gdtfMode) => {
-      /** @type {DmxBreakWrapper[]} */
-      const dmxBreakWrappers = [];
+      /** @type {(string | MatrixChannelReference | undefined)[]} */
+      const channels = [];
+      const geometryReferences = findGeometryReferences(gdtfMode.$.Geometry);
+      const modeSpecificSuffix = getModeSpecificNameSuffix(gdtfMode.$.Geometry);
 
       const gdtfChannels = gdtfMode.DMXChannels[0].DMXChannel;
       for (const gdtfChannel of gdtfChannels) {
-        if (dmxBreakWrappers.length === 0 || dmxBreakWrappers.at(-1).dmxBreak !== gdtfChannel.$.DMXBreak) {
-          dmxBreakWrappers.push({
-            dmxBreak: gdtfChannel.$.DMXBreak,
-            geometry: gdtfChannel.$.Geometry,
-            channels: [],
-          });
+        if (gdtfChannel.$.DMXBreak === 'Overwrite') {
+          addTemplateChannelInstances(channels, gdtfChannel, { gdtfMode, geometryReferences, modeSpecificSuffix });
         }
-
-        addChannelKeyToDmxBreakWrapper(gdtfChannel, dmxBreakWrappers);
-      }
-
-      const channels = [];
-
-      for (const channelWrapper of dmxBreakWrappers) {
-        if (channelWrapper.dmxBreak !== 'Overwrite') {
-          // just append the channels
-          channels.push(...channelWrapper.channels);
-          continue;
+        else {
+          addModeChannel(channels, gdtfChannel);
         }
-
-        // append a matrix channel insert block
-
-        const geometryReferences = findGeometryReferences(channelWrapper.geometry);
-        const usedMatrixPixels = geometryReferences.map(
-          (gdtfGeoRef, index) => gdtfGeoRef.$.Name || `${channelWrapper.geometry} ${index + 1}`,
-        );
-
-        for (const pixelKey of usedMatrixPixels) {
-          matrixPixels.add(pixelKey);
-        }
-
-        channels.push({
-          insert: 'matrixChannels',
-          repeatFor: usedMatrixPixels,
-          channelOrder: 'perPixel',
-          templateChannels: channelWrapper.channels.map(
-            (channelKey) => `${channelKey} $pixelKey`,
-          ),
-        });
       }
 
       return {
         name: gdtfMode.$.Name,
         rdmPersonalityIndex: gdtfMode._oflRdmPersonalityIndex,
-        channels,
+        channels: getModeChannels(channels),
       };
     });
 
-    const matrixPixelList = [...matrixPixels];
+    if (matrixPixels.size === 1) {
+      // OFL matrices need at least two pixels
+      resolveSinglePixelMatrix(matrixPixels.keys().next().value);
+      return;
+    }
 
     fixture.matrix = {
-      pixelKeys: [
-        [
-          matrixPixelList,
-        ],
-      ],
+      pixelKeys: getPixelKeyStructure(matrixPixels),
     };
 
     // try to simplify matrix channel insert blocks
+    const pixelKeysInXyzOrder = JSON.stringify(new Matrix(fixture.matrix).getPixelKeysByOrder('X', 'Y', 'Z'));
     for (const mode of fixture.modes) {
       for (const channel of mode.channels) {
-        if (typeof channel === 'object' && channel.insert === 'matrixChannels'
-          && JSON.stringify(matrixPixelList) === JSON.stringify(channel.repeatFor)) {
+        if (typeof channel === 'object' && channel?.insert === 'matrixChannels'
+          && pixelKeysInXyzOrder === JSON.stringify(channel.repeatFor)) {
           channel.repeatFor = 'eachPixelXYZ';
         }
       }
     }
 
     /**
-     * Adds the OFL channel key (and fine channel keys) to dmxBreakWrappers'
-     * last entry's channels array.
-     * @param {object} gdtfChannel - The GDTF channel object.
-     * @param {DmxBreakWrapper[]} dmxBreakWrappers - The DMXBreak wrapper array.
+     * @param {(string | MatrixChannelReference | undefined)[]} channels - The mode's channels by DMX address.
+     * @param {object} gdtfChannel - A <DMXChannel> XML object without DMXBreak="Overwrite".
      */
-    function addChannelKeyToDmxBreakWrapper(gdtfChannel, dmxBreakWrappers) {
+    function addModeChannel(channels, gdtfChannel) {
       const channelKey = gdtfChannel._oflChannelKey;
-      const oflChannel = fixture.availableChannels[channelKey];
+      const channelKeys = [channelKey, ...(fixture.availableChannels[channelKey].fineChannelAliases ?? [])];
+      for (const [index, offset] of getChannelOffsets(gdtfChannel)) {
+        channels[offset - 1] = channelKeys[index];
+      }
+    }
 
-      const channels = dmxBreakWrappers.at(-1).channels;
+    /**
+     * Adds a matrix channel reference for every geometry reference that instantiates the channel's geometry.
+     * @param {(string | MatrixChannelReference | undefined)[]} channels - The mode's channels by DMX address.
+     * @param {object} gdtfChannel - A <DMXChannel> XML object with DMXBreak="Overwrite".
+     * @param {object} context - The mode's context.
+     * @param {object} context.gdtfMode - The <DMXMode> XML object.
+     * @param {object[]} context.geometryReferences - All geometry references in the mode's geometry tree.
+     * @param {string | null} context.modeSpecificSuffix - The suffix of names in the mode's geometry tree.
+     */
+    function addTemplateChannelInstances(channels, gdtfChannel, { gdtfMode, geometryReferences, modeSpecificSuffix }) {
+      const templateKey = templateKeysByChannelKey.get(gdtfChannel._oflChannelKey);
+      const templateKeys = [templateKey, ...(fixture.templateChannels[templateKey].fineChannelAliases ?? [])];
+      const templateGeometryName = topLevelGeometryNames.get(gdtfChannel.$.Geometry) ?? gdtfChannel.$.Geometry;
+      const references = geometryReferences.filter((reference) => reference.$.Geometry === templateGeometryName);
 
-      const channelKeys = [channelKey, ...(oflChannel.fineChannelAliases ?? [])];
+      if (references.length === 0) {
+        warnings.push(`DMXChannel '${gdtfChannel.$.Name}' in mode '${gdtfMode.$.Name}' has DMXBreak="Overwrite", but its geometry '${templateGeometryName}' is not referenced in the mode's geometry tree.`);
+      }
 
+      const channelOffsets = getChannelOffsets(gdtfChannel);
+      for (const [referenceIndex, reference] of references.entries()) {
+        const pixelKey = getPixelKey(reference, modeSpecificSuffix) || `${templateGeometryName} ${referenceIndex + 1}`;
+        if (!matrixPixels.has(pixelKey)) {
+          matrixPixels.set(pixelKey, reference._translation);
+        }
+
+        const breakOffset = getOverwriteBreakOffset(reference);
+        for (const [index, offset] of channelOffsets) {
+          channels[breakOffset + offset - 2] = { templateKey: templateKeys[index], pixelKey };
+        }
+      }
+    }
+
+    /**
+     * Exporters have to give each mode's geometry tree unique names, often by
+     * appending a suffix to the names of another tree, like "Body (Mode 2)".
+     * @param {string} rootGeometryName - The name of the mode's top-level geometry.
+     * @returns {string | null} The suffix of the mode's geometry names, if its root is a renamed copy of another top-level geometry.
+     */
+    function getModeSpecificNameSuffix(rootGeometryName) {
+      const match = /^(.+)( \([^()]+\))$/.exec(rootGeometryName);
+      if (!match) {
+        return null;
+      }
+      const isCopy = getChildGeometries(gdtfFixture.Geometries[0]).some((node) => node.$.Name === match[1]);
+      return isCopy ? match[2] : null;
+    }
+
+    /**
+     * @param {object} gdtfReference - A <GeometryReference> XML object.
+     * @param {string | null} modeSpecificSuffix - The suffix of names in this mode's geometry tree.
+     * @returns {string} The OFL pixel key, which is the same in all modes.
+     */
+    function getPixelKey(gdtfReference, modeSpecificSuffix) {
+      const name = gdtfReference.$.Name ?? '';
+      return modeSpecificSuffix && name !== modeSpecificSuffix && name.endsWith(modeSpecificSuffix)
+        ? name.slice(0, -modeSpecificSuffix.length)
+        : name;
+    }
+
+    /**
+     * Arranges the pixels in a grid if their positions allow it, else in one row.
+     * @param {Map<string, number[]>} pixels - Pixel keys with their (translation) position.
+     * @returns {(string | null)[][][]} OFL's pixelKeys structure (z, y, x).
+     */
+    function getPixelKeyStructure(pixels) {
+      const pixelKeys = pixels.keys().toArray();
+      const positions = pixels.values().map((position) => position.map((value) => roundPosition(value))).toArray();
+      const distinctPositions = new Set(positions.map((position) => position.join(',')));
+      if (distinctPositions.size !== pixels.size) {
+        // overlapping or missing positions
+        return [[pixelKeys]];
+      }
+
+      // GDTF's y axis goes upwards and its z axis towards the viewer, OFL's the other way around
+      const getAxisValues = (axis, compare) => new Set(positions.map((position) => position[axis])).values().toArray().toSorted(compare);
+      const xValues = getAxisValues(0, (a, b) => a - b);
+      const yValues = getAxisValues(1, (a, b) => b - a);
+      const zValues = getAxisValues(2, (a, b) => b - a);
+
+      const structure = createEmptyPixelKeyStructure(zValues.length, yValues.length, xValues.length);
+      for (const [index, pixelKey] of pixelKeys.entries()) {
+        const [x, y, z] = positions[index];
+        structure[zValues.indexOf(z)][yValues.indexOf(y)][xValues.indexOf(x)] = pixelKey;
+      }
+      return structure;
+    }
+
+    /**
+     * Replaces all template channels by normal channels for the only pixel.
+     * @param {string} pixelKey - The pixel key.
+     */
+    function resolveSinglePixelMatrix(pixelKey) {
+      const resolveKey = (templateKey) => TemplateChannel.resolveTemplateString(templateKey, { pixelKey });
+
+      fixture.availableChannels ??= {};
+      const templateChannels = Object.entries(fixture.templateChannels ?? {});
+      for (const [templateKey, templateChannel] of templateChannels) {
+        fixture.availableChannels[resolveKey(templateKey)] = TemplateChannel.resolveTemplateObject(templateChannel, { pixelKey });
+      }
+      for (const [channelKey, templateKey] of templateKeysByChannelKey) {
+        templateKeysByChannelKey.set(channelKey, resolveKey(templateKey));
+      }
+      delete fixture.templateChannels;
+
+      for (const mode of fixture.modes) {
+        mode.channels = mode.channels.flatMap((channel) => (
+          typeof channel === 'object' && channel?.insert === 'matrixChannels'
+            ? channel.templateChannels.map((templateKey) => resolveKey(templateKey))
+            : [channel]
+        ));
+      }
+    }
+
+    /**
+     * @param {object} gdtfChannel - The GDTF <DMXChannel> XML object.
+     * @returns {[number, number][]} Pairs of fineness index (0 = coarse) and one-based DMX offset.
+     */
+    function getChannelOffsets(gdtfChannel) {
       // The Offset attribute replaced the Coarse/Fine/Ultra/Uber attributes in GDTF v1.0
       const channelOffsets = hasNonNoneAttribute(gdtfChannel, 'Offset')
         ? gdtfChannel.$.Offset.split(',')
@@ -1031,48 +1338,228 @@ export async function importFixtures(buffer, filename, authorName) {
             gdtfChannel.$.Uber,
           ];
 
-      for (const [index, channelOffset] of channelOffsets.entries()) {
-        const dmxChannelNumber = Number.parseInt(channelOffset, 10);
+      return channelOffsets
+        .map((channelOffset, index) => [index, Number.parseInt(channelOffset, 10)])
+        .filter(([, dmxChannelNumber]) => !Number.isNaN(dmxChannelNumber));
+    }
 
-        if (!Number.isNaN(dmxChannelNumber)) {
-          channels[dmxChannelNumber - 1] = channelKeys[index];
-        }
+    /**
+     * @param {object} gdtfReference - A <GeometryReference> XML object.
+     * @returns {number} The DMX offset for channels with `DMXBreak="Overwrite"`, which is defined by the last <Break> child.
+     */
+    function getOverwriteBreakOffset(gdtfReference) {
+      const dmxOffset = gdtfReference.Break?.at(-1)?.$?.DMXOffset ?? '1';
+
+      // DMXAddress may be given as absolute address or as Universe.Address
+      const [universeOrAddress, address] = dmxOffset.split('.').map((part) => Number.parseInt(part, 10));
+      const offset = address === undefined ? universeOrAddress : ((universeOrAddress - 1) * 512) + address;
+      return Number.isNaN(offset) ? 1 : offset;
+    }
+
+    /**
+     * @returns {Map<string, string>} The name of the top-level geometry for every geometry name.
+     */
+    function getTopLevelGeometryNames() {
+      const topLevelNames = new Map();
+
+      const topLevelNodes = getChildGeometries(gdtfFixture.Geometries[0]);
+      for (const topLevelNode of topLevelNodes) {
+        traverseGeometries(topLevelNode, (node) => {
+          topLevelNames.set(node.$.Name, topLevelNode.$.Name);
+        });
+      }
+
+      return topLevelNames;
+    }
+
+    /**
+     * Find all <GeometryReference> XML nodes in a mode's geometry tree. Each
+     * gets a `_translation` property with its position relative to the root.
+     * @param {string} rootGeometryName - The name of the mode's top-level geometry.
+     * @returns {object[]} An array of all geometry reference XML objects.
+     */
+    function findGeometryReferences(rootGeometryName) {
+      const topLevelNodes = getChildGeometries(gdtfFixture.Geometries[0]);
+      const rootNode = topLevelNodes.find((node) => node.$.Name === rootGeometryName);
+
+      // without a valid root geometry, fall back to all geometry trees
+      const geometryReferences = [];
+      const treeRoots = rootNode ? [rootNode] : topLevelNodes;
+      for (const node of treeRoots) {
+        traverseGeometries(node, (childNode, tagName) => {
+          if (tagName === 'GeometryReference') {
+            geometryReferences.push(childNode);
+          }
+        });
+      }
+
+      return geometryReferences;
+    }
+
+    /**
+     * @param {object} xmlNode - A geometry XML node or the <Geometries> node.
+     * @returns {object[]} All child geometry XML nodes, each with a `_tagName` property.
+     */
+    function getChildGeometries(xmlNode) {
+      return Object.entries(xmlNode)
+        .filter(([tagName, childNodes]) => tagName !== '$' && tagName !== 'Break' && Array.isArray(childNodes))
+        .flatMap(([tagName, childNodes]) => childNodes
+          .filter((childNode) => typeof childNode === 'object')
+          .map((childNode) => {
+            childNode._tagName = tagName;
+            return childNode;
+          }));
+    }
+
+    /**
+     * Recursively calls the callback for the given geometry node and all its descendants.
+     * Geometry references are not followed.
+     * @param {object} xmlNode - The geometry XML node to start traversing at.
+     * @param {(node: object, tagName: string) => void} callback - Called for every geometry node.
+     * @param {number[]} [parentTranslation] - The translation of the parent node relative to the tree's root.
+     */
+    function traverseGeometries(xmlNode, callback, parentTranslation = [0, 0, 0]) {
+      const translation = getTranslation(xmlNode.$?.Position).map((value, axis) => value + parentTranslation[axis]);
+      xmlNode._translation = translation;
+
+      callback(xmlNode, xmlNode._tagName);
+
+      if (xmlNode._tagName === 'GeometryReference') {
+        return;
+      }
+
+      for (const childNode of getChildGeometries(xmlNode)) {
+        traverseGeometries(childNode, callback, translation);
       }
     }
 
     /**
-     * Find all <GeometryReference> XML nodes with a given Geometry attribute.
-     * @param {string} geometryName - The name of the geometry reference.
-     * @returns {object[]} An array of all geometry reference XML objects.
+     * @param {string | undefined} position - A GDTF position matrix like `{1,0,0,x}{0,1,0,y}{0,0,1,z}{0,0,0,1}`.
+     * @returns {number[]} The translation part of the matrix (rotations are ignored).
      */
-    function findGeometryReferences(geometryName) {
-      const geometryReferences = [];
+    function getTranslation(position) {
+      const rows = position?.match(/\{[^}]*\}/g);
+      return !rows || rows.length < 3 ? [0, 0, 0] : rows.slice(0, 3).map((row) => Number.parseFloat(row.slice(1, -1).split(',', 4)[3]) || 0);
+    }
 
-      traverseGeometries(gdtfFixture.Geometries[0]);
+    /**
+     * Turns a list of channel keys and matrix channel references (indexed by
+     * DMX address) into OFL mode channels, using matrix channel insert blocks
+     * wherever the matrix channels follow a regular pattern.
+     * @param {(string | MatrixChannelReference | undefined)[]} channels - Channels by DMX address.
+     * @returns {(string | null | object)[]} OFL mode channels.
+     */
+    function getModeChannels(channels) {
+      const modeChannels = [];
 
-      return geometryReferences;
+      let index = 0;
+      while (index < channels.length) {
+        const channel = channels[index];
 
-      /**
-       * Recursively go through the child nodes of a given XML node and add
-       * <GeometryReference> nodes with the correct Geometry attribute to the
-       * geometryReferences array.
-       * @param {object} xmlNode - The XML node object to start traversing at.
-       */
-      function traverseGeometries(xmlNode) {
-        // add all suitable GeometryReference child nodes
-        geometryReferences.push(
-          ...(xmlNode.GeometryReference || []).filter((gdtfGeoRef) => gdtfGeoRef.$.Geometry === geometryName),
-        );
-
-        // traverse all other child nodes
-        for (const [tagName, childNodes] of Object.entries(xmlNode)) {
-          if (tagName !== '$' && tagName !== 'GeometryReference') {
-            for (const childNode of childNodes) {
-              traverseGeometries(childNode);
-            }
-          }
+        if (!isMatrixChannelReference(channel)) {
+          modeChannels.push(channel ?? null);
+          index++;
+          continue;
         }
+
+        const block = getMatrixChannelInsertBlock(channels, index);
+        if (block.length === 1) {
+          modeChannels.push(TemplateChannel.resolveTemplateString(channel.templateKey, { pixelKey: channel.pixelKey }));
+        }
+        else {
+          modeChannels.push({
+            insert: 'matrixChannels',
+            repeatFor: block.pixelKeys,
+            channelOrder: block.channelOrder,
+            templateChannels: block.templateKeys,
+          });
+        }
+        index += block.length;
       }
+
+      return modeChannels;
+    }
+
+    /**
+     * @param {(string | MatrixChannelReference | undefined)[]} channels - Channels by DMX address.
+     * @param {number} start - Index of the first matrix channel reference of the block.
+     * @returns {{ length: number, pixelKeys: string[], templateKeys: string[], channelOrder: string }} The longest matrix channel insert block starting at the given index.
+     */
+    function getMatrixChannelInsertBlock(channels, start) {
+      const perPixelBlock = getRegularBlock(channels, start, 'pixelKey', 'templateKey');
+      const perChannelBlock = getRegularBlock(channels, start, 'templateKey', 'pixelKey');
+
+      if (perChannelBlock.length > perPixelBlock.length) {
+        return {
+          length: perChannelBlock.length,
+          pixelKeys: perChannelBlock.innerKeys,
+          templateKeys: perChannelBlock.outerKeys,
+          channelOrder: 'perChannel',
+        };
+      }
+
+      return {
+        length: perPixelBlock.length,
+        pixelKeys: perPixelBlock.outerKeys,
+        templateKeys: perPixelBlock.innerKeys,
+        channelOrder: 'perPixel',
+      };
+    }
+
+    /**
+     * Finds the longest block of the form `outer1 × inner*, outer2 × inner*, …`,
+     * e.g. for per-pixel order: all template channels of pixel 1, then the same template channels of pixel 2, …
+     * @param {(string | MatrixChannelReference | undefined)[]} channels - Channels by DMX address.
+     * @param {number} start - Index of the first matrix channel reference of the block.
+     * @param {'pixelKey' | 'templateKey'} outerProperty - The property that changes slowly.
+     * @param {'pixelKey' | 'templateKey'} innerProperty - The property that changes quickly.
+     * @returns {{ length: number, outerKeys: string[], innerKeys: string[] }} The block.
+     */
+    function getRegularBlock(channels, start, outerProperty, innerProperty) {
+      const firstOuterKey = channels[start][outerProperty];
+      const innerKeys = [];
+      let index = start;
+      while (
+        isMatrixChannelReference(channels[index])
+        && channels[index][outerProperty] === firstOuterKey
+        && !innerKeys.includes(channels[index][innerProperty])
+      ) {
+        innerKeys.push(channels[index][innerProperty]);
+        index++;
+      }
+
+      const outerKeys = [firstOuterKey];
+      for (;;) {
+        // index-based access, as array methods skip the holes of the sparse channels array
+        const nextChannels = [];
+        for (let innerIndex = 0; innerIndex < innerKeys.length; innerIndex++) {
+          nextChannels.push(channels[index + innerIndex]);
+        }
+        if (nextChannels.some((channel) => !isMatrixChannelReference(channel))) {
+          break;
+        }
+
+        const outerKey = nextChannels[0][outerProperty];
+        const isRepetition = !outerKeys.includes(outerKey) && nextChannels.every(
+          (channel, innerIndex) => channel[outerProperty] === outerKey && channel[innerProperty] === innerKeys[innerIndex],
+        );
+        if (!isRepetition) {
+          break;
+        }
+
+        outerKeys.push(outerKey);
+        index += innerKeys.length;
+      }
+
+      return { length: index - start, outerKeys, innerKeys };
+    }
+
+    /**
+     * @param {unknown} channel - An entry of the channels list.
+     * @returns {boolean} Whether the entry is a matrix channel reference.
+     */
+    function isMatrixChannelReference(channel) {
+      return typeof channel === 'object' && channel !== null;
     }
   }
 
@@ -1087,7 +1574,9 @@ export async function importFixtures(buffer, filename, authorName) {
     for (const triggerChannelKey of Object.keys(relationsPerMaster)) {
       const triggerChannelRelations = simplifySwitchingChannelRelations(triggerChannelKey);
 
-      const triggerChannel = fixture.availableChannels?.[triggerChannelKey] ?? fixture.templateChannels[`${triggerChannelKey} $pixelKey`];
+      const triggerChannel = fixture.availableChannels?.[triggerChannelKey]
+        ?? fixture.availableChannels?.[templateKeysByChannelKey.get(triggerChannelKey)]
+        ?? fixture.templateChannels[templateKeysByChannelKey.get(triggerChannelKey)];
 
       if (triggerChannel.defaultValue === null) {
         triggerChannel.defaultValue = 0;
@@ -1126,7 +1615,7 @@ export async function importFixtures(buffer, filename, authorName) {
         if (addedSwitchingChannelKey) {
           // already added switching channel has the same relations, so we don't need to add it
           // but we need to update modeChannelReplacements
-          for (const mode of modeChannelReplacements) {
+          for (const mode of Object.values(modeChannelReplacements)) {
             for (const channelKey of Object.keys(mode)) {
               if (mode[channelKey] === switchingChannelKey) {
                 mode[channelKey] = addedSwitchingChannelKey;
@@ -1149,7 +1638,8 @@ export async function importFixtures(buffer, filename, authorName) {
      */
     function getChannelResolution(channel) {
       if ('dmxValueResolution' in channel) {
-        return Number.parseInt(channel.dmxValueResolution, 10) * 8;
+        // e.g. '16bit' -> 2
+        return Number.parseInt(channel.dmxValueResolution, 10) / 8;
       }
 
       return 'fineChannelAliases' in channel
@@ -1157,6 +1647,26 @@ export async function importFixtures(buffer, filename, authorName) {
         : CoarseChannel.RESOLUTION_8BIT;
     }
   }
+}
+
+/**
+ * @param {number} value - A position value in meters.
+ * @returns {number} The value rounded to micrometers, to compare positions without floating point noise.
+ */
+function roundPosition(value) {
+  return Math.round(value * 1e6) / 1e6;
+}
+
+/**
+ * @param {number} depth - Number of pixels along the z axis.
+ * @param {number} height - Number of pixels along the y axis.
+ * @param {number} width - Number of pixels along the x axis.
+ * @returns {null[][][]} A pixel key structure (z, y, x) without pixels.
+ */
+function createEmptyPixelKeyStructure(depth, height, width) {
+  const createRow = () => Array.from({ length: width }, () => null);
+  const createLayer = () => Array.from({ length: height }, createRow);
+  return Array.from({ length: depth }, createLayer);
 }
 
 /**
@@ -1241,6 +1751,9 @@ function transformRelations(fixture, switchingChannelRelations) {
   const relationsPerMaster = {};
   const modeChannelReplacements = {};
 
+  /** @type {Map<string, string>} Coarse switching channel keys by fine switching channel key. */
+  const coarseSwitchingChannelKeys = new Map();
+
   // bring relations into a structure we can work with
   for (const relation of switchingChannelRelations) {
     const masterKey = relation.masterGdtfChannel._oflChannelKey;
@@ -1272,7 +1785,43 @@ function transformRelations(fixture, switchingChannelRelations) {
     transformRelationFineChannels(relation, switchingChannelKey, switchToChannelKey);
   }
 
+  removeIncompleteFineSwitchingChannels();
+
   return { relationsPerMaster, modeChannelReplacements };
+
+  /**
+   * If only some switch targets have fine channels, a fine switching channel
+   * would not have a target for all trigger values. In that case, the fine
+   * channel is kept as a normal channel in the mode; it is only meaningful while
+   * its coarse channel is active.
+   */
+  function removeIncompleteFineSwitchingChannels() {
+    for (const masterRelations of Object.values(relationsPerMaster)) {
+      for (const [fineSwitchingChannelKey, coarseSwitchingChannelKey] of coarseSwitchingChannelKeys) {
+        const fineRelations = masterRelations[fineSwitchingChannelKey];
+        const coarseRelations = masterRelations[coarseSwitchingChannelKey];
+        if (!fineRelations || !coarseRelations || fineRelations.length === coarseRelations.length) {
+          continue;
+        }
+
+        delete masterRelations[fineSwitchingChannelKey];
+        removeChannelReplacementsBy(fineSwitchingChannelKey);
+      }
+    }
+  }
+
+  /**
+   * @param {string} switchingChannelKey - The key of a removed switching channel.
+   */
+  function removeChannelReplacementsBy(switchingChannelKey) {
+    for (const channelReplacements of Object.values(modeChannelReplacements)) {
+      for (const [switchToChannelKey, replacementChannelKey] of Object.entries(channelReplacements)) {
+        if (replacementChannelKey === switchingChannelKey) {
+          delete channelReplacements[switchToChannelKey];
+        }
+      }
+    }
+  }
 
   /**
    * Adds all implicit fine channel relations for a given relation.
@@ -1295,6 +1844,7 @@ function transformRelations(fixture, switchingChannelRelations) {
         if (!(switchingFineChannelKey in relationsPerMaster[masterKey])) {
           relationsPerMaster[masterKey][switchingFineChannelKey] = [];
         }
+        coarseSwitchingChannelKeys.set(switchingFineChannelKey, switchingChannelKey);
 
         relationsPerMaster[masterKey][switchingFineChannelKey].push({
           dmxFrom: relation.dmxFrom,

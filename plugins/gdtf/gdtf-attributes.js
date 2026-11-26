@@ -702,15 +702,37 @@ const gdtfAttributes = {
     oflProperty: 'frostIntensity',
     defaultPhysicalEntity: 'Percent',
   },
+  'Frost(n)PulseClose': {
+    // Pulse closing of frost (n), the physical value is the frequency.
+    inheritFrom: 'Frost(n)PulseOpen',
+    beforePhysicalPropertyHook(capability) {
+      capability.effectName = 'Pulse close';
+    },
+  },
+  'Frost(n)PulseOpen': {
+    // Pulse opening of frost (n), the physical value is the frequency.
+    oflType: 'FrostEffect',
+    oflProperty: 'speed',
+    defaultPhysicalEntity: 'Frequency',
+    beforePhysicalPropertyHook(capability) {
+      capability.effectName = 'Pulse open';
+    },
+  },
+  'Frost(n)Ramp': {
+    // Ramping of frost (n), the physical value is the frequency.
+    inheritFrom: 'Frost(n)PulseOpen',
+    beforePhysicalPropertyHook(capability) {
+      capability.effectName = 'Ramp';
+    },
+  },
   'Frost(n)MSpeed': {
     // Movement speed of the fixture's frost (n). (since GDTF v1.0)
     inheritFrom: 'IrisMSpeed',
   },
   'Function': {
-    // Generally controls features of the fixture.
-    oflType: 'Maintenance',
-    oflProperty: 'parameter',
-    defaultPhysicalEntity: 'Percent',
+    // Generally controls features of the fixture. GDTF's generic attribute for features that don't fit any other attribute.
+    oflType: 'Generic',
+    oflProperty: null,
   },
   'GlobalMSpeed': {
     // General speed of fixture's features.
@@ -746,11 +768,9 @@ const gdtfAttributes = {
     oflProperty: 'shakeSpeed',
     defaultPhysicalEntity: 'Frequency',
     beforePhysicalPropertyHook(capability, gdtfCapability) {
-      const gdtfSlotNumber = Number.parseInt(gdtfCapability.$.WheelSlotIndex, 10);
-
       capability.wheel = gdtfCapability._channelFunction.$.Wheel || 'Unknown';
       capability.isShaking = 'slot';
-      capability.slotNumber = gdtfSlotNumber;
+      addSlotNumber(capability, gdtfCapability);
     },
   },
   'Gobo(n)SelectEffects': {
@@ -763,7 +783,14 @@ const gdtfAttributes = {
   },
   'Gobo(n)SelectSpin': {
     // Selects gobos whose rotation is continuous in gobo wheel (n) and controls the angular speed of the gobo’s spin within the same channel function. (since GDTF v0.88)
-    inheritFrom: 'Gobo(n)',
+    oflType: 'WheelSlotRotation',
+    oflProperty: 'speed',
+    defaultPhysicalEntity: 'AngularSpeed',
+    beforePhysicalPropertyHook(capability, gdtfCapability) {
+      capability.wheel = gdtfCapability._channelFunction.$.Wheel || 'Unknown';
+      addSlotNumber(capability, gdtfCapability);
+      normalizeAngularSpeedDirection(gdtfCapability);
+    },
   },
   'Gobo(n)WheelAudio': {
     // Controls audio-controlled functionality of gobo wheel (n). (since GDTF v0.88)
@@ -780,7 +807,7 @@ const gdtfAttributes = {
   },
   'Gobo(n)WheelIndex': {
     // Controls angle of indexed rotation of gobo wheel (n). (since GDTF v0.88)
-    inheritFrom: 'Gobo(n)',
+    inheritFrom: 'Color(n)WheelIndex',
   },
   'Gobo(n)WheelMode': {
     // Changes control between selecting, indexing, and rotating the gobos of gobo wheel (n).
@@ -803,10 +830,8 @@ const gdtfAttributes = {
     oflProperty: 'shakeSpeed',
     defaultPhysicalEntity: 'Frequency',
     beforePhysicalPropertyHook(capability, gdtfCapability) {
-      const gdtfSlotNumber = Number.parseInt(gdtfCapability.$.WheelSlotIndex, 10);
-
       capability.wheel = gdtfCapability._channelFunction.$.Wheel || 'Unknown';
-      capability.slotNumber = gdtfSlotNumber;
+      addSlotNumber(capability, gdtfCapability);
     },
   },
   'Gobo(n)WheelSpin': {
@@ -852,10 +877,10 @@ const gdtfAttributes = {
     oflProperty: null,
   },
   'IntensityMSpeed': {
-    // Movement speed of the fixture's intensity.
+    // Movement speed of the fixture's intensity. MSpeed attributes are unitless, i.e. relative.
     oflType: 'Speed',
     oflProperty: guessSpeedOrDuration,
-    defaultPhysicalEntity: 'Speed',
+    defaultPhysicalEntity: 'Percent',
   },
   'IntensityReset': {
     // Resets the fixture's intensity.
@@ -906,12 +931,20 @@ const gdtfAttributes = {
       capability.effectName = 'Strobe';
     },
   },
+  'IrisRandomPulseClose': {
+    // Sets speed of the iris's random closing pulse.
+    inheritFrom: 'IrisPulseClose',
+    afterPhysicalPropertyHook: addRandomToEffectName,
+  },
+  'IrisRandomPulseOpen': {
+    // Sets speed of the iris's random opening pulse.
+    inheritFrom: 'IrisPulseOpen',
+    afterPhysicalPropertyHook: addRandomToEffectName,
+  },
   'IrisStrobeRandom': {
     // Sets speed of the iris's random movement. (since GDTF v1.0)
     inheritFrom: 'IrisStrobe',
-    afterPhysicalPropertyHook(capability) {
-      capability.randomTiming = true;
-    },
+    afterPhysicalPropertyHook: addRandomToEffectName,
   },
   'LampControl': {
     // Controls the fixture's lamp on/lamp off feature.
@@ -958,6 +991,12 @@ const gdtfAttributes = {
     // Resets the fixture's pan.
     inheritFrom: 'BeamReset',
   },
+  'PanRotate': {
+    // Controls the speed of the fixture's continuous pan movement.
+    oflType: 'PanContinuous',
+    oflProperty: 'speed',
+    defaultPhysicalEntity: 'AngularSpeed',
+  },
   'PanTiltMode': undefined, // Selects fixture's pan/tilt mode. Selects between a limited pan/tilt range or a continuous pan/tilt range. (since GDTF v1.0)
   'PixelMode': undefined, // Controls behavior of LED pixels. (since GDTF v1.0)
   'Playmode': undefined, // Selects the playmode of a device (e.g., a media server). (since GDTF v1.0)
@@ -994,6 +1033,16 @@ const gdtfAttributes = {
     oflType: 'Prism',
     oflProperty: null,
     defaultPhysicalEntity: 'None',
+    beforePhysicalPropertyHook(capability, gdtfCapability) {
+      // a referenced prism wheel is selected like any other wheel
+      if (!('Wheel' in gdtfCapability._channelFunction.$)) {
+        return;
+      }
+
+      capability.type = 'WheelSlot';
+      gdtfAttributes['Color(n)'].beforePhysicalPropertyHook(capability, gdtfCapability);
+      setSlotNumberFromPhysicalValues(capability, gdtfCapability);
+    },
   },
   'Prism(n)Macro': {
     // Macro functions of prism wheel (n).
@@ -1008,6 +1057,7 @@ const gdtfAttributes = {
     oflType: 'PrismRotation',
     oflProperty: 'angle',
     defaultPhysicalEntity: 'Angle',
+    beforePhysicalPropertyHook: setWheelSlotRotationIfWheelIsReferenced,
   },
   'Prism(n)PosRotate': {
     // Controls the speed and direction of continuous rotation of prisms in prism wheel (n).
@@ -1015,6 +1065,7 @@ const gdtfAttributes = {
     oflProperty: 'speed',
     defaultPhysicalEntity: 'AngularSpeed',
     beforePhysicalPropertyHook(capability, gdtfCapability) {
+      setWheelSlotRotationIfWheelIsReferenced(capability, gdtfCapability);
       normalizeAngularSpeedDirection(gdtfCapability);
     },
   },
@@ -1159,6 +1210,12 @@ const gdtfAttributes = {
     // Changes strobe style - strobe, pulse, random strobe, etc. - of the shutter attribute.
     inheritFrom: 'AnimationWheel(n)Mode',
   },
+  'StrobeFrequency': {
+    // Controls the frequency of the strobe flashes.
+    oflType: 'StrobeSpeed',
+    oflProperty: 'speed',
+    defaultPhysicalEntity: 'Frequency',
+  },
   'StrobeRate': {
     // Controls the time between strobe flashes.
     oflType: 'StrobeSpeed',
@@ -1178,6 +1235,12 @@ const gdtfAttributes = {
   'TiltReset': {
     // Resets the fixture's tilt.
     inheritFrom: 'BeamReset',
+  },
+  'TiltRotate': {
+    // Controls the speed of the fixture's continuous tilt movement.
+    oflType: 'TiltContinuous',
+    oflProperty: 'speed',
+    defaultPhysicalEntity: 'AngularSpeed',
   },
   'UVStability': undefined, // Settings for UV stability color behavior. (since GDTF v1.0)
   'Video': undefined, // Controls video features.
@@ -1220,6 +1283,60 @@ const gdtfAttributes = {
     inheritFrom: 'BeamReset',
   },
 };
+
+/**
+ * Rotating the slots of a referenced prism wheel is a wheel slot rotation in OFL.
+ * @param {object} capability - The OFL capability object.
+ * @param {object} gdtfCapability - The enhanced <ChannelSet> XML object.
+ */
+function setWheelSlotRotationIfWheelIsReferenced(capability, gdtfCapability) {
+  if (!('Wheel' in gdtfCapability._channelFunction.$)) {
+    return;
+  }
+
+  capability.type = 'WheelSlotRotation';
+  capability.wheel = gdtfCapability._channelFunction.$.Wheel;
+}
+
+/**
+ * Sets slotNumber (or slotNumberStart/End) from the physical values computed by the Color(n) hook,
+ * for capabilities whose OFL property isn't slotNumber.
+ * @param {object} capability - The OFL capability object.
+ * @param {object} gdtfCapability - The enhanced <ChannelSet> XML object.
+ */
+function setSlotNumberFromPhysicalValues(capability, gdtfCapability) {
+  const { _physicalFrom: slotNumberStart, _physicalTo: slotNumberEnd } = gdtfCapability;
+  if (Number.isNaN(slotNumberStart) || Number.isNaN(slotNumberEnd)) {
+    return;
+  }
+  if (slotNumberStart === slotNumberEnd) {
+    capability.slotNumber = slotNumberStart;
+  }
+  else {
+    capability.slotNumberStart = slotNumberStart;
+    capability.slotNumberEnd = slotNumberEnd;
+  }
+}
+
+/**
+ * OFL's IrisEffect has no randomTiming property, so random timing is part of the effect name.
+ * @param {object} capability - The OFL capability object.
+ */
+function addRandomToEffectName(capability) {
+  capability.effectName = `Random ${capability.effectName}`;
+}
+
+/**
+ * Adds the OFL slot number of a channel set that selects a wheel slot, if it does.
+ * @param {object} capability - The OFL capability object.
+ * @param {object} gdtfCapability - The enhanced <ChannelSet> XML object.
+ */
+function addSlotNumber(capability, gdtfCapability) {
+  const gdtfSlotNumber = Number.parseInt(gdtfCapability.$.WheelSlotIndex, 10);
+  if (!Number.isNaN(gdtfSlotNumber)) {
+    capability.slotNumber = gdtfSlotNumber;
+  }
+}
 
 /**
  * @param {object} gdtfCapability - The enhanced <ChannelSet> XML object.
