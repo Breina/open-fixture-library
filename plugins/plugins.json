@@ -12,6 +12,7 @@
     "dmxcontrol3",
     "dragonframe",
     "ecue",
+    "gdtf",
     "millumin",
     "ofl",
     "op-z",
@@ -63,8 +64,12 @@
       "exportTests": []
     },
     "gdtf": {
-      "name": "GDTF 1.0",
-      "importPluginVersion": "0.2.2"
+      "name": "GDTF",
+      "importPluginVersion": "0.3.0",
+      "exportPluginVersion": "1.0.0",
+      "exportTests": [
+        "xsd-schema-conformity"
+      ]
     },
     "millumin": {
       "name": "Millumin",

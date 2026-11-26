@@ -1,0 +1,1717 @@
+[
+  {
+    "name": "Dimmer",
+    "pretty": "Dim",
+    "feature": "Dimmer.Dimmer"
+  },
+  {
+    "name": "Pan",
+    "pretty": "P",
+    "feature": "Position.PanTilt",
+    "physicalUnit": "Angle",
+    "activationGroup": "PanTilt"
+  },
+  {
+    "name": "Tilt",
+    "pretty": "T",
+    "feature": "Position.PanTilt",
+    "physicalUnit": "Angle",
+    "activationGroup": "PanTilt"
+  },
+  {
+    "name": "PanRotate",
+    "pretty": "P Rotate",
+    "feature": "Position.PanTilt",
+    "physicalUnit": "AngularSpeed"
+  },
+  {
+    "name": "TiltRotate",
+    "pretty": "T Rotate",
+    "feature": "Position.PanTilt",
+    "physicalUnit": "AngularSpeed"
+  },
+  {
+    "name": "PositionEffect",
+    "pretty": "Pos FX",
+    "feature": "Position.PanTilt"
+  },
+  {
+    "name": "PositionEffectRate",
+    "pretty": "Pos FX Rate",
+    "feature": "Position.PanTilt"
+  },
+  {
+    "name": "PositionEffectFade",
+    "pretty": "Pos FX Fade",
+    "feature": "Position.PanTilt"
+  },
+  {
+    "name": "XYZ_X",
+    "pretty": "X",
+    "feature": "Position.XYZ",
+    "physicalUnit": "Length",
+    "activationGroup": "XYZ"
+  },
+  {
+    "name": "XYZ_Y",
+    "pretty": "Y",
+    "feature": "Position.XYZ",
+    "physicalUnit": "Length",
+    "activationGroup": "XYZ"
+  },
+  {
+    "name": "XYZ_Z",
+    "pretty": "Z",
+    "feature": "Position.XYZ",
+    "physicalUnit": "Length",
+    "activationGroup": "XYZ"
+  },
+  {
+    "name": "Rot_X",
+    "pretty": "Rot X",
+    "feature": "Position.Rotation",
+    "physicalUnit": "Angle",
+    "activationGroup": "Rot_XYZ"
+  },
+  {
+    "name": "Rot_Y",
+    "pretty": "Rot Y",
+    "feature": "Position.Rotation",
+    "physicalUnit": "Angle",
+    "activationGroup": "Rot_XYZ"
+  },
+  {
+    "name": "Rot_Z",
+    "pretty": "Rot Z",
+    "feature": "Position.Rotation",
+    "physicalUnit": "Angle",
+    "activationGroup": "Rot_XYZ"
+  },
+  {
+    "name": "Scale_X",
+    "pretty": "Scale X",
+    "feature": "Position.Scale",
+    "physicalUnit": "Percent",
+    "activationGroup": "Scale_XYZ"
+  },
+  {
+    "name": "Scale_Y",
+    "pretty": "Scale Y",
+    "feature": "Position.Scale",
+    "physicalUnit": "Percent",
+    "activationGroup": "Scale_XYZ"
+  },
+  {
+    "name": "Scale_Z",
+    "pretty": "Scale Z",
+    "feature": "Position.Scale",
+    "physicalUnit": "Percent",
+    "activationGroup": "Scale_XYZ"
+  },
+  {
+    "name": "Scale_XYZ",
+    "pretty": "Scale XYZ",
+    "feature": "Position.Scale",
+    "physicalUnit": "Percent",
+    "activationGroup": "Scale_XYZ"
+  },
+  {
+    "name": "Gobo(n)",
+    "pretty": "G(n)",
+    "feature": "Gobo.Gobo",
+    "activationGroup": "Gobo(n)"
+  },
+  {
+    "name": "Gobo(n)SelectSpin",
+    "pretty": "Select Spin",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "AngularSpeed",
+    "activationGroup": "Gobo(n)",
+    "mainAttribute": "Gobo(n)"
+  },
+  {
+    "name": "Gobo(n)SelectShake",
+    "pretty": "Select Shake",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Frequency",
+    "activationGroup": "Gobo(n)",
+    "mainAttribute": "Gobo(n)"
+  },
+  {
+    "name": "Gobo(n)SelectEffects",
+    "pretty": "Select Effects",
+    "feature": "Gobo.Gobo",
+    "activationGroup": "Gobo(n)",
+    "mainAttribute": "Gobo(n)"
+  },
+  {
+    "name": "Gobo(n)WheelIndex",
+    "pretty": "Wheel Index",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Angle",
+    "activationGroup": "Gobo(n)",
+    "mainAttribute": "Gobo(n)"
+  },
+  {
+    "name": "Gobo(n)WheelSpin",
+    "pretty": "Wheel Spin",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "AngularSpeed",
+    "activationGroup": "Gobo(n)",
+    "mainAttribute": "Gobo(n)"
+  },
+  {
+    "name": "Gobo(n)WheelShake",
+    "pretty": "Wheel Shake",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Frequency",
+    "activationGroup": "Gobo(n)",
+    "mainAttribute": "Gobo(n)"
+  },
+  {
+    "name": "Gobo(n)WheelRandom",
+    "pretty": "Wheel Random",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Frequency",
+    "activationGroup": "Gobo(n)",
+    "mainAttribute": "Gobo(n)"
+  },
+  {
+    "name": "Gobo(n)WheelAudio",
+    "pretty": "Wheel Audio",
+    "feature": "Gobo.Gobo",
+    "activationGroup": "Gobo(n)",
+    "mainAttribute": "Gobo(n)"
+  },
+  {
+    "name": "Gobo(n)Pos",
+    "pretty": "G(n) <>",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Angle",
+    "activationGroup": "Gobo(n)Pos"
+  },
+  {
+    "name": "Gobo(n)PosRotate",
+    "pretty": "Rotate",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "AngularSpeed",
+    "activationGroup": "Gobo(n)Pos",
+    "mainAttribute": "Gobo(n)Pos"
+  },
+  {
+    "name": "Gobo(n)PosShake",
+    "pretty": "Shake",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Frequency",
+    "activationGroup": "Gobo(n)Pos",
+    "mainAttribute": "Gobo(n)Pos"
+  },
+  {
+    "name": "AnimationWheel(n)",
+    "pretty": "Anim(n)",
+    "feature": "Gobo.Gobo",
+    "activationGroup": "AnimationWheel(n)"
+  },
+  {
+    "name": "AnimationWheel(n)Audio",
+    "pretty": "Anim Audio",
+    "feature": "Gobo.Gobo",
+    "activationGroup": "AnimationWheel(n)",
+    "mainAttribute": "AnimationWheel(n)"
+  },
+  {
+    "name": "AnimationWheel(n)Macro",
+    "pretty": "Anim FX",
+    "feature": "Gobo.Gobo",
+    "activationGroup": "AnimationWheel(n)",
+    "mainAttribute": "AnimationWheel(n)"
+  },
+  {
+    "name": "AnimationWheel(n)Random",
+    "pretty": "Anim Random",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Frequency",
+    "activationGroup": "AnimationWheel(n)",
+    "mainAttribute": "AnimationWheel(n)"
+  },
+  {
+    "name": "AnimationWheel(n)SelectEffects",
+    "pretty": "Anim Select FX",
+    "feature": "Gobo.Gobo",
+    "activationGroup": "AnimationWheel(n)",
+    "mainAttribute": "AnimationWheel(n)"
+  },
+  {
+    "name": "AnimationWheel(n)SelectShake",
+    "pretty": "Anim Select Shake",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Frequency",
+    "activationGroup": "AnimationWheel(n)",
+    "mainAttribute": "AnimationWheel(n)"
+  },
+  {
+    "name": "AnimationWheel(n)SelectSpin",
+    "pretty": "Anim Select Spin",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "AngularSpeed",
+    "activationGroup": "AnimationWheel(n)",
+    "mainAttribute": "AnimationWheel(n)"
+  },
+  {
+    "name": "AnimationWheel(n)Pos",
+    "pretty": "Anim Pos",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Angle",
+    "activationGroup": "AnimationWheel(n)Pos"
+  },
+  {
+    "name": "AnimationWheel(n)PosRotate",
+    "pretty": "Anim Rotate",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "AngularSpeed",
+    "activationGroup": "AnimationWheel(n)Pos",
+    "mainAttribute": "AnimationWheel(n)Pos"
+  },
+  {
+    "name": "AnimationWheel(n)PosShake",
+    "pretty": "Anim Shake",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Frequency",
+    "activationGroup": "AnimationWheel(n)Pos",
+    "mainAttribute": "AnimationWheel(n)Pos"
+  },
+  {
+    "name": "AnimationSystem(n)",
+    "pretty": "Anim System",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Percent",
+    "activationGroup": "AnimationSystem(n)"
+  },
+  {
+    "name": "AnimationSystem(n)Ramp",
+    "pretty": "Anim System Ramp",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Frequency",
+    "activationGroup": "AnimationSystem(n)",
+    "mainAttribute": "AnimationSystem(n)"
+  },
+  {
+    "name": "AnimationSystem(n)Shake",
+    "pretty": "Anim System Shake",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Frequency",
+    "activationGroup": "AnimationSystem(n)",
+    "mainAttribute": "AnimationSystem(n)"
+  },
+  {
+    "name": "AnimationSystem(n)Audio",
+    "pretty": "Anim System Audio",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "None",
+    "activationGroup": "AnimationSystem(n)",
+    "mainAttribute": "AnimationSystem(n)"
+  },
+  {
+    "name": "AnimationSystem(n)Random",
+    "pretty": "Anim System Random",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "None",
+    "activationGroup": "AnimationSystem(n)",
+    "mainAttribute": "AnimationSystem(n)"
+  },
+  {
+    "name": "AnimationSystem(n)Pos",
+    "pretty": "Anim System Pos",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Angle",
+    "activationGroup": "AnimationSystem(n)Pos"
+  },
+  {
+    "name": "AnimationSystem(n)PosRotate",
+    "pretty": "Anim System Rotate",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "AngularSpeed",
+    "activationGroup": "AnimationSystem(n)Pos",
+    "mainAttribute": "AnimationSystem(n)Pos"
+  },
+  {
+    "name": "AnimationSystem(n)PosShake",
+    "pretty": "Anim System Shake",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "Frequency",
+    "activationGroup": "AnimationSystem(n)Pos",
+    "mainAttribute": "AnimationSystem(n)Pos"
+  },
+  {
+    "name": "AnimationSystem(n)PosRandom",
+    "pretty": "Anim System Rot Random",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "None",
+    "activationGroup": "AnimationSystem(n)Pos",
+    "mainAttribute": "AnimationSystem(n)Pos"
+  },
+  {
+    "name": "AnimationSystem(n)PosAudio",
+    "pretty": "Anim System Rot Audio",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "None",
+    "activationGroup": "AnimationSystem(n)Pos",
+    "mainAttribute": "AnimationSystem(n)Pos"
+  },
+  {
+    "name": "AnimationSystem(n)Macro",
+    "pretty": "Anim System Macro",
+    "feature": "Gobo.Gobo",
+    "physicalUnit": "None"
+  },
+  {
+    "name": "MediaFolder(n)",
+    "pretty": "Media Folder(n)",
+    "feature": "Gobo.Media"
+  },
+  {
+    "name": "MediaContent(n)",
+    "pretty": "Media Content(n)",
+    "feature": "Gobo.Media"
+  },
+  {
+    "name": "ModelFolder(n)",
+    "pretty": "Model Folder(n)",
+    "feature": "Gobo.Media",
+    "physicalUnit": "None"
+  },
+  {
+    "name": "ModelContent(n)",
+    "pretty": "Model Content(n)",
+    "feature": "Gobo.Media",
+    "physicalUnit": "None"
+  },
+  {
+    "name": "Playmode",
+    "pretty": "Playmode",
+    "feature": "Gobo.Media"
+  },
+  {
+    "name": "PlayBegin",
+    "pretty": "Play Begin",
+    "feature": "Gobo.Media",
+    "physicalUnit": "Time"
+  },
+  {
+    "name": "PlayEnd",
+    "pretty": "Play End",
+    "feature": "Gobo.Media",
+    "physicalUnit": "Time"
+  },
+  {
+    "name": "PlaySpeed",
+    "pretty": "Play Speed",
+    "feature": "Gobo.Media",
+    "physicalUnit": "Percent"
+  },
+  {
+    "name": "ColorEffects(n)",
+    "pretty": "Color FX(n)",
+    "feature": "Color.Color"
+  },
+  {
+    "name": "Color(n)",
+    "pretty": "C(n)",
+    "feature": "Color.Color",
+    "activationGroup": "ColorRGB"
+  },
+  {
+    "name": "Color(n)WheelIndex",
+    "pretty": "Wheel Index",
+    "feature": "Color.Color",
+    "physicalUnit": "Angle",
+    "activationGroup": "ColorRGB",
+    "mainAttribute": "Color(n)"
+  },
+  {
+    "name": "Color(n)WheelSpin",
+    "pretty": "Wheel Spin",
+    "feature": "Color.Color",
+    "physicalUnit": "AngularSpeed",
+    "activationGroup": "ColorRGB",
+    "mainAttribute": "Color(n)"
+  },
+  {
+    "name": "Color(n)WheelRandom",
+    "pretty": "Wheel Random",
+    "feature": "Color.Color",
+    "physicalUnit": "Frequency",
+    "activationGroup": "ColorRGB",
+    "mainAttribute": "Color(n)"
+  },
+  {
+    "name": "Color(n)WheelAudio",
+    "pretty": "Wheel Audio",
+    "feature": "Color.Color",
+    "activationGroup": "ColorRGB",
+    "mainAttribute": "Color(n)"
+  },
+  {
+    "name": "ColorAdd_R",
+    "pretty": "R",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.64,0.33,21.3"
+  },
+  {
+    "name": "ColorAdd_G",
+    "pretty": "G",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.3,0.6,71.5"
+  },
+  {
+    "name": "ColorAdd_B",
+    "pretty": "B",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.15,0.06,7.2"
+  },
+  {
+    "name": "ColorAdd_C",
+    "pretty": "C",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.225,0.329,78.7"
+  },
+  {
+    "name": "ColorAdd_M",
+    "pretty": "M",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.321,0.154,28.5"
+  },
+  {
+    "name": "ColorAdd_Y",
+    "pretty": "Y",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.419,0.505,92.8"
+  },
+  {
+    "name": "ColorAdd_RY",
+    "pretty": "Amber",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.477,0.460,57.0"
+  },
+  {
+    "name": "ColorAdd_GY",
+    "pretty": "Lime",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.372,0.543,82.1"
+  },
+  {
+    "name": "ColorAdd_GC",
+    "pretty": "Blue-Green",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.250,0.419,75.1"
+  },
+  {
+    "name": "ColorAdd_BC",
+    "pretty": "Light-Blue ",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.200,0.239,43.0"
+  },
+  {
+    "name": "ColorAdd_BM",
+    "pretty": "Purple",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.254,0.117,17.9"
+  },
+  {
+    "name": "ColorAdd_RM",
+    "pretty": "Pink",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.403,0.200,24.9"
+  },
+  {
+    "name": "ColorAdd_W",
+    "pretty": "White",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.313,0.329,100.0"
+  },
+  {
+    "name": "ColorAdd_WW",
+    "pretty": "WW",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.319,0.340,99.3"
+  },
+  {
+    "name": "ColorAdd_CW",
+    "pretty": "CW",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.306,0.329,97.9"
+  },
+  {
+    "name": "ColorAdd_UV",
+    "pretty": "UV",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.176,0.005,0.6"
+  },
+  {
+    "name": "ColorSub_R",
+    "pretty": "R",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.64,0.33,21.3"
+  },
+  {
+    "name": "ColorSub_G",
+    "pretty": "G",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.3,0.6,71.5"
+  },
+  {
+    "name": "ColorSub_B",
+    "pretty": "B",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.15,0.06,7.2"
+  },
+  {
+    "name": "ColorSub_C",
+    "pretty": "C",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.225,0.329,78.7"
+  },
+  {
+    "name": "ColorSub_M",
+    "pretty": "M",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.321,0.154,28.5"
+  },
+  {
+    "name": "ColorSub_Y",
+    "pretty": "Y",
+    "feature": "Color.RGB",
+    "physicalUnit": "ColorComponent",
+    "activationGroup": "ColorRGB",
+    "color": "0.419,0.505,92.8"
+  },
+  {
+    "name": "ColorMacro(n)",
+    "pretty": "Color Macro(n)",
+    "feature": "Color.RGB"
+  },
+  {
+    "name": "ColorMacro(n)Rate",
+    "pretty": "Color Macro(n) Rate",
+    "feature": "Color.RGB"
+  },
+  {
+    "name": "CTO",
+    "pretty": "CTO",
+    "feature": "Color.Color",
+    "physicalUnit": "Temperature"
+  },
+  {
+    "name": "CTC",
+    "pretty": "CTC",
+    "feature": "Color.Color",
+    "physicalUnit": "Temperature"
+  },
+  {
+    "name": "CTB",
+    "pretty": "CTB",
+    "feature": "Color.Color",
+    "physicalUnit": "Temperature"
+  },
+  {
+    "name": "Tint",
+    "pretty": "Tint",
+    "feature": "Color.Color"
+  },
+  {
+    "name": "HSB_Hue",
+    "pretty": "H",
+    "feature": "Color.HSB",
+    "physicalUnit": "Angle",
+    "activationGroup": "ColorHSB"
+  },
+  {
+    "name": "HSB_Saturation",
+    "pretty": "S",
+    "feature": "Color.HSB",
+    "physicalUnit": "Percent",
+    "activationGroup": "ColorHSB"
+  },
+  {
+    "name": "HSB_Brightness",
+    "pretty": "B",
+    "feature": "Color.HSB",
+    "physicalUnit": "Percent",
+    "activationGroup": "ColorHSB"
+  },
+  {
+    "name": "HSB_Quality",
+    "pretty": "Q",
+    "feature": "Color.HSB",
+    "physicalUnit": "Percent",
+    "activationGroup": "ColorHSB"
+  },
+  {
+    "name": "CIE_X",
+    "pretty": "X",
+    "feature": "Color.CIE",
+    "activationGroup": "ColorCIE"
+  },
+  {
+    "name": "CIE_Y",
+    "pretty": "Y",
+    "feature": "Color.CIE",
+    "activationGroup": "ColorCIE"
+  },
+  {
+    "name": "CIE_Brightness",
+    "pretty": "B",
+    "feature": "Color.CIE",
+    "physicalUnit": "Percent",
+    "activationGroup": "ColorCIE"
+  },
+  {
+    "name": "ColorRGB_Red",
+    "pretty": "R",
+    "feature": "Color.Indirect",
+    "activationGroup": "ColorIndirect"
+  },
+  {
+    "name": "ColorRGB_Green",
+    "pretty": "G",
+    "feature": "Color.Indirect",
+    "activationGroup": "ColorIndirect"
+  },
+  {
+    "name": "ColorRGB_Blue",
+    "pretty": "B",
+    "feature": "Color.Indirect",
+    "activationGroup": "ColorIndirect"
+  },
+  {
+    "name": "ColorRGB_Cyan",
+    "pretty": "C",
+    "feature": "Color.Indirect",
+    "activationGroup": "ColorIndirect"
+  },
+  {
+    "name": "ColorRGB_Magenta",
+    "pretty": "M",
+    "feature": "Color.Indirect",
+    "activationGroup": "ColorIndirect"
+  },
+  {
+    "name": "ColorRGB_Yellow",
+    "pretty": "Y",
+    "feature": "Color.Indirect",
+    "activationGroup": "ColorIndirect"
+  },
+  {
+    "name": "ColorRGB_Quality",
+    "pretty": "Q",
+    "feature": "Color.Indirect",
+    "activationGroup": "ColorIndirect"
+  },
+  {
+    "name": "VideoBoost_R",
+    "pretty": "Boost R",
+    "feature": "Color.ColorCorrection",
+    "physicalUnit": "None",
+    "color": "0.64,0.33,21.3"
+  },
+  {
+    "name": "VideoBoost_G",
+    "pretty": "Boost G",
+    "feature": "Color.ColorCorrection",
+    "physicalUnit": "None",
+    "color": "0.3,0.6,71.5"
+  },
+  {
+    "name": "VideoBoost_B",
+    "pretty": "Boost B",
+    "feature": "Color.ColorCorrection",
+    "physicalUnit": "None",
+    "color": "0.15,0.06,7.2"
+  },
+  {
+    "name": "VideoHueShift",
+    "pretty": "Hue Shift",
+    "feature": "Color.HSBC_Shift",
+    "physicalUnit": "Angle"
+  },
+  {
+    "name": "VideoSaturation",
+    "pretty": "S",
+    "feature": "Color.HSBC_Shift",
+    "physicalUnit": "Percent"
+  },
+  {
+    "name": "VideoBrightness",
+    "pretty": "B",
+    "feature": "Color.HSBC_Shift",
+    "physicalUnit": "Percent"
+  },
+  {
+    "name": "VideoContrast",
+    "pretty": "C",
+    "feature": "Color.HSBC_Shift",
+    "physicalUnit": "Percent"
+  },
+  {
+    "name": "VideoKeyColor_R",
+    "pretty": "R",
+    "feature": "Color.ColorKey",
+    "physicalUnit": "None",
+    "color": "0.64,0.33,21.3"
+  },
+  {
+    "name": "VideoKeyColor_G",
+    "pretty": "G",
+    "feature": "Color.ColorKey",
+    "physicalUnit": "None",
+    "color": "0.3,0.6,71.5"
+  },
+  {
+    "name": "VideoColorKey_B",
+    "pretty": "B",
+    "feature": "Color.ColorKey",
+    "physicalUnit": "None",
+    "color": "0.15,0.06,7.2"
+  },
+  {
+    "name": "VideoKeyIntensity",
+    "pretty": "Intensity",
+    "feature": "Color.ColorKey",
+    "physicalUnit": "Percent"
+  },
+  {
+    "name": "VideoKeyTolerance",
+    "pretty": "Tolerance",
+    "feature": "Color.ColorKey",
+    "physicalUnit": "None"
+  },
+  {
+    "name": "StrobeDuration",
+    "pretty": "Strobe Duration",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Time"
+  },
+  {
+    "name": "StrobeRate",
+    "pretty": "Strobe Rate",
+    "feature": "Beam.Beam"
+  },
+  {
+    "name": "StrobeFrequency",
+    "pretty": "Strobe Frequency",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency"
+  },
+  {
+    "name": "StrobeModeShutter",
+    "pretty": "StrobeM Shutter",
+    "feature": "Beam.Beam"
+  },
+  {
+    "name": "StrobeModeStrobe",
+    "pretty": "StrobeM Strobe",
+    "feature": "Beam.Beam",
+    "mainAttribute": "StrobeModeShutter"
+  },
+  {
+    "name": "StrobeModePulse",
+    "pretty": "StrobeM Pulse",
+    "feature": "Beam.Beam",
+    "mainAttribute": "StrobeModeShutter"
+  },
+  {
+    "name": "StrobeModePulseOpen",
+    "pretty": "StrobeM PulseOpen",
+    "feature": "Beam.Beam",
+    "mainAttribute": "StrobeModeShutter"
+  },
+  {
+    "name": "StrobeModePulseClose",
+    "pretty": "StrobeM Pulse Close",
+    "feature": "Beam.Beam",
+    "mainAttribute": "StrobeModeShutter"
+  },
+  {
+    "name": "StrobeModeRandom",
+    "pretty": "StrobeM Random",
+    "feature": "Beam.Beam",
+    "mainAttribute": "StrobeModeShutter"
+  },
+  {
+    "name": "StrobeModeRandomPulse",
+    "pretty": "StrobeM Random Pulse",
+    "feature": "Beam.Beam",
+    "mainAttribute": "StrobeModeShutter"
+  },
+  {
+    "name": "StrobeModeRandomPulseOpen",
+    "pretty": "StrobeM Random Pulse Open",
+    "feature": "Beam.Beam",
+    "mainAttribute": "StrobeModeShutter"
+  },
+  {
+    "name": "StrobeModeRandomPulseClose",
+    "pretty": "StrobeM Random Pulse Close",
+    "feature": "Beam.Beam",
+    "mainAttribute": "StrobeModeShutter"
+  },
+  {
+    "name": "StrobeModeEffect",
+    "pretty": "StrobeM Effect",
+    "feature": "Beam.Beam",
+    "mainAttribute": "StrobeModeShutter"
+  },
+  {
+    "name": "Shutter(n)",
+    "pretty": "Sh(n)",
+    "feature": "Beam.Beam"
+  },
+  {
+    "name": "Shutter(n)Strobe",
+    "pretty": "Strobe(n)",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Shutter(n)"
+  },
+  {
+    "name": "Shutter(n)StrobePulse",
+    "pretty": "Pulse(n)",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Shutter(n)"
+  },
+  {
+    "name": "Shutter(n)StrobePulseClose",
+    "pretty": "Pulse Close(n)",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Shutter(n)"
+  },
+  {
+    "name": "Shutter(n)StrobePulseOpen",
+    "pretty": "Pulse Open(n)",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Shutter(n)"
+  },
+  {
+    "name": "Shutter(n)StrobeRandom",
+    "pretty": "Random(n)",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Shutter(n)"
+  },
+  {
+    "name": "Shutter(n)StrobeRandomPulse",
+    "pretty": "Random Pulse(n)",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Shutter(n)"
+  },
+  {
+    "name": "Shutter(n)StrobeRandomPulseClose",
+    "pretty": "Random Pulse Close(n)",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Shutter(n)"
+  },
+  {
+    "name": "Shutter(n)StrobeRandomPulseOpen",
+    "pretty": "Random Pulse Open(n)",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Shutter(n)"
+  },
+  {
+    "name": "Shutter(n)StrobeEffect",
+    "pretty": "Effect(n)",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Shutter(n)"
+  },
+  {
+    "name": "Iris",
+    "pretty": "Iris",
+    "feature": "Beam.Beam"
+  },
+  {
+    "name": "IrisStrobe",
+    "pretty": "Strobe",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Iris"
+  },
+  {
+    "name": "IrisStrobeRandom",
+    "pretty": "Random Strobe",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Iris"
+  },
+  {
+    "name": "IrisPulseClose",
+    "pretty": "Pulse Close",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Iris"
+  },
+  {
+    "name": "IrisPulseOpen",
+    "pretty": "Pulse Open",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Iris"
+  },
+  {
+    "name": "IrisRandomPulseClose",
+    "pretty": "Random Pulse Close",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Iris"
+  },
+  {
+    "name": "IrisRandomPulseOpen",
+    "pretty": "Random Pulse Open",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Iris"
+  },
+  {
+    "name": "Frost(n)",
+    "pretty": "Frost(n)",
+    "feature": "Beam.Beam"
+  },
+  {
+    "name": "Frost(n)PulseOpen",
+    "pretty": "Pulse Open (n)",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Frost(n)"
+  },
+  {
+    "name": "Frost(n)PulseClose",
+    "pretty": "Pulse Close (n)",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Frost(n)"
+  },
+  {
+    "name": "Frost(n)Ramp",
+    "pretty": "Ramp (n)",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency",
+    "mainAttribute": "Frost(n)"
+  },
+  {
+    "name": "Prism(n)",
+    "pretty": "Prism(n)",
+    "feature": "Beam.Beam",
+    "activationGroup": "Prism"
+  },
+  {
+    "name": "Prism(n)SelectSpin",
+    "pretty": "Select Spin(n)",
+    "feature": "Beam.Beam",
+    "physicalUnit": "AngularSpeed",
+    "activationGroup": "Prism",
+    "mainAttribute": "Prism(n)"
+  },
+  {
+    "name": "Prism(n)Macro",
+    "pretty": "Prism(n) Macro",
+    "feature": "Beam.Beam",
+    "activationGroup": "Prism",
+    "mainAttribute": "Prism(n)"
+  },
+  {
+    "name": "Prism(n)Pos",
+    "pretty": "Prism(n) Pos",
+    "feature": "Beam.Beam",
+    "physicalUnit": "AngularSpeed"
+  },
+  {
+    "name": "Prism(n)PosRotate",
+    "pretty": "Rotate(n)",
+    "feature": "Beam.Beam",
+    "physicalUnit": "AngularSpeed",
+    "activationGroup": "Prism",
+    "mainAttribute": "Prism(n)Pos"
+  },
+  {
+    "name": "Effects(n)",
+    "pretty": "FX(n)",
+    "feature": "Beam.Beam"
+  },
+  {
+    "name": "Effects(n)Rate",
+    "pretty": "FX(n) Rate",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Frequency"
+  },
+  {
+    "name": "Effects(n)Fade",
+    "pretty": "FX(n) Fade",
+    "feature": "Beam.Beam"
+  },
+  {
+    "name": "Effects(n)Adjust(m)",
+    "pretty": "FX(n) Adjust(m)",
+    "feature": "Beam.Beam"
+  },
+  {
+    "name": "Effects(n)Pos",
+    "pretty": "FX(n) Pos",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Angle"
+  },
+  {
+    "name": "Effects(n)PosRotate",
+    "pretty": "FX(n) Rotate",
+    "feature": "Beam.Beam",
+    "physicalUnit": "AngularSpeed",
+    "mainAttribute": "Effects(n)Pos"
+  },
+  {
+    "name": "EffectsSync",
+    "pretty": "FX Sync",
+    "feature": "Beam.Beam"
+  },
+  {
+    "name": "BeamShaper",
+    "pretty": "Beam Shaper",
+    "feature": "Beam.Beam",
+    "activationGroup": "BeamShaper"
+  },
+  {
+    "name": "BeamShaperMacro",
+    "pretty": "Beam Shaper Macro",
+    "feature": "Beam.Beam",
+    "activationGroup": "BeamShaper"
+  },
+  {
+    "name": "BeamShaperPos",
+    "pretty": "Beam Shaper <>",
+    "feature": "Beam.Beam",
+    "physicalUnit": "Angle",
+    "activationGroup": "BeamShaper"
+  },
+  {
+    "name": "BeamShaperPosRotate",
+    "pretty": "Beam Shaper Rotate",
+    "feature": "Beam.Beam",
+    "physicalUnit": "AngularSpeed",
+    "activationGroup": "BeamShaper"
+  },
+  {
+    "name": "Zoom",
+    "pretty": "Zoom",
+    "feature": "Focus.Focus",
+    "physicalUnit": "Angle"
+  },
+  {
+    "name": "ZoomModeSpot",
+    "pretty": "Zoom Spot",
+    "feature": "Focus.Focus",
+    "physicalUnit": "Angle"
+  },
+  {
+    "name": "ZoomModeBeam",
+    "pretty": "Zoom Beam",
+    "feature": "Focus.Focus",
+    "physicalUnit": "Angle"
+  },
+  {
+    "name": "DigitalZoom",
+    "pretty": "DZoom",
+    "feature": "Focus.Focus",
+    "physicalUnit": "Angle"
+  },
+  {
+    "name": "Focus(n)",
+    "pretty": "Focus(n)",
+    "feature": "Focus.Focus"
+  },
+  {
+    "name": "Focus(n)Adjust",
+    "pretty": "Focus(n) Adjust",
+    "feature": "Focus.Focus"
+  },
+  {
+    "name": "Focus(n)Distance",
+    "pretty": "Focus(n) Distance",
+    "feature": "Focus.Focus",
+    "physicalUnit": "Length"
+  },
+  {
+    "name": "Control(n)",
+    "pretty": "Ctrl(n)",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "DimmerMode",
+    "pretty": "Dim Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "DimmerCurve",
+    "pretty": "Dim Curve",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "BlackoutMode",
+    "pretty": "Blackout Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "LEDFrequency",
+    "pretty": "LED Frequency",
+    "feature": "Control.Control",
+    "physicalUnit": "Frequency"
+  },
+  {
+    "name": "LEDZoneMode",
+    "pretty": "LED Zone Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "PixelMode",
+    "pretty": "Pixel Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "PanMode",
+    "pretty": "Pan Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "TiltMode",
+    "pretty": "Tilt Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "PanTiltMode",
+    "pretty": "PanTilt Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "PositionModes",
+    "pretty": "Pos Modes",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "Gobo(n)WheelMode",
+    "pretty": "G(n) Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "GoboWheelShortcutMode",
+    "pretty": "Gobo Shortcut Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "AnimationWheel(n)Mode",
+    "pretty": "Anim Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "AnimationWheelShortcutMode",
+    "pretty": "Anim Shortcut Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "Color(n)Mode",
+    "pretty": "C(n) Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ColorWheelShortcutMode",
+    "pretty": "Color Wheel Shortcut Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "CyanMode",
+    "pretty": "Cyan Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "MagentaMode",
+    "pretty": "Magenta Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "YellowMode",
+    "pretty": "Yellow Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ColorMixMode",
+    "pretty": "Color Mix Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ChromaticMode",
+    "pretty": "Chroma Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ColorCalibrationMode",
+    "pretty": "CCalib Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ColorConsistency",
+    "pretty": "Color consistency",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ColorControl",
+    "pretty": "Color Ctrl",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ColorModelMode",
+    "pretty": "ColorModel",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ColorSettingsReset",
+    "pretty": "Color Ctrl Rst",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ColorUniformity",
+    "pretty": "ColorUniform",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "CRIMode",
+    "pretty": "CRI Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "CustomColor",
+    "pretty": "Custom Color",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "UVStability",
+    "pretty": "UV Stab",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "WaveLengthCorrection",
+    "pretty": "WaveLength",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "WhiteCount",
+    "pretty": "White Count",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "StrobeMode",
+    "pretty": "Strobe Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ZoomMode",
+    "pretty": "Zoom Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "FocusMode",
+    "pretty": "Focus Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "IrisMode",
+    "pretty": "Iris Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "FanMode",
+    "pretty": "Fan Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "FollowSpotMode",
+    "pretty": "FollowSpot Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "BeamEffectIndexRotateMode",
+    "pretty": "Beam Effect Index Rotate Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "IntensityMSpeed",
+    "pretty": "Intensity MSpeed",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "PositionMSpeed",
+    "pretty": "Pos MSpeed",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ColorMixMSpeed",
+    "pretty": "Color Mix MSpeed",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ColorWheelSelectMSpeed",
+    "pretty": "Color Wheel Select MSpeed",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "GoboWheel(n)MSpeed",
+    "pretty": "Gobo Wheel(n) MSpeed",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "IrisMSpeed",
+    "pretty": "Iris MSpeed",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "Prism(n)MSpeed",
+    "pretty": "Prism(n) MSpeed",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "FocusMSpeed",
+    "pretty": "Focus MSpeed",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "Frost(n)MSpeed",
+    "pretty": "Frost(n) MSpeed",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ZoomMSpeed",
+    "pretty": "Zoom MSpeed",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "FrameMSpeed",
+    "pretty": "Frame MSpeed",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "GlobalMSpeed",
+    "pretty": "Global MSpeed",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ReflectorAdjust",
+    "pretty": "Reflector Adj",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "FixtureGlobalReset",
+    "pretty": "Fixture Global Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "DimmerReset",
+    "pretty": "Dimmer Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ShutterReset",
+    "pretty": "Shutter Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "BeamReset",
+    "pretty": "Beam Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ColorMixReset",
+    "pretty": "Color Mix Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ColorWheelReset",
+    "pretty": "Color Wheel Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "FocusReset",
+    "pretty": "Focus Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "FrameReset",
+    "pretty": "Frame Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "GoboWheelReset",
+    "pretty": "G Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "IntensityReset",
+    "pretty": "Intensity Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "IrisReset",
+    "pretty": "Iris Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "PositionReset",
+    "pretty": "Pos Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "PanReset",
+    "pretty": "Pan Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "TiltReset",
+    "pretty": "Tilt Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "ZoomReset",
+    "pretty": "Zoom Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "CTBReset",
+    "pretty": "CTB Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "CTOReset",
+    "pretty": "CTO Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "CTCReset",
+    "pretty": "CTC Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "AnimationSystemReset",
+    "pretty": "Anim Sytem Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "FixtureCalibrationReset",
+    "pretty": "Fixture Calibration Reset",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "Function",
+    "pretty": "Function",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "LampControl",
+    "pretty": "Lamp Ctrl",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "DisplayIntensity",
+    "pretty": "Display Int",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "DMXInput",
+    "pretty": "DMX Input",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "NoFeature",
+    "pretty": "NoFeature",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "Dummy",
+    "pretty": "Dummy",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "Blower(n)",
+    "pretty": "Blower(n)",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "Fan(n)",
+    "pretty": "Fan(n)",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "Fog(n)",
+    "pretty": "Fog(n)",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "Haze(n)",
+    "pretty": "Haze(n)",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "LampPowerMode",
+    "pretty": "Lamp Power Mode",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "Fans",
+    "pretty": "Fans",
+    "feature": "Control.Control"
+  },
+  {
+    "name": "Blade(n)A",
+    "pretty": "Blade(n)A",
+    "feature": "Shapers.Shapers",
+    "activationGroup": "Shaper"
+  },
+  {
+    "name": "Blade(n)B",
+    "pretty": "Blade(n)B",
+    "feature": "Shapers.Shapers",
+    "activationGroup": "Shaper"
+  },
+  {
+    "name": "Blade(n)Rot",
+    "pretty": "Blade(n) Rot",
+    "feature": "Shapers.Shapers",
+    "physicalUnit": "Angle",
+    "activationGroup": "Shaper"
+  },
+  {
+    "name": "ShaperRot",
+    "pretty": "Shaper Rot",
+    "feature": "Shapers.Shapers",
+    "physicalUnit": "Angle",
+    "activationGroup": "Shaper"
+  },
+  {
+    "name": "ShaperMacros",
+    "pretty": "Shaper Macros",
+    "feature": "Shapers.Shapers"
+  },
+  {
+    "name": "ShaperMacrosSpeed",
+    "pretty": "Shaper Macros Speed",
+    "feature": "Shapers.Shapers"
+  },
+  {
+    "name": "BladeSoft(n)A",
+    "pretty": "BladeS(n)A",
+    "feature": "Shapers.Shapers",
+    "physicalUnit": "None"
+  },
+  {
+    "name": "BladeSoft(n)B",
+    "pretty": "BladeS(n)B",
+    "feature": "Shapers.Shapers",
+    "physicalUnit": "None"
+  },
+  {
+    "name": "KeyStone(n)A",
+    "pretty": "KS(n)A",
+    "feature": "Shapers.Shapers",
+    "physicalUnit": "None"
+  },
+  {
+    "name": "KeyStone(n)B",
+    "pretty": "KS(n)B",
+    "feature": "Shapers.Shapers",
+    "physicalUnit": "None"
+  },
+  {
+    "name": "Video",
+    "pretty": "Video",
+    "feature": "Video.Video"
+  },
+  {
+    "name": "VideoEffect(n)Type",
+    "pretty": "Video Effect(n) Type",
+    "feature": "Video.Video"
+  },
+  {
+    "name": "VideoEffect(n)Parameter(m)",
+    "pretty": "Video Effect(n) Parameter(m)",
+    "feature": "Video.Video"
+  },
+  {
+    "name": "VideoCamera(n)",
+    "pretty": "Video Camera(n)",
+    "feature": "Video.Video"
+  },
+  {
+    "name": "FieldOfView",
+    "pretty": "FOV",
+    "feature": "Video.Video",
+    "physicalUnit": "Angle"
+  },
+  {
+    "name": "InputSource",
+    "pretty": "ISrc",
+    "feature": "Video.Video",
+    "physicalUnit": "None"
+  },
+  {
+    "name": "VideoBlendMode",
+    "pretty": "BlendMode",
+    "feature": "Video.Video",
+    "physicalUnit": "None"
+  },
+  {
+    "name": "VideoSoundVolume(n)",
+    "pretty": "Volume(n)",
+    "feature": "Video.Video",
+    "physicalUnit": "Percent"
+  }
+]
